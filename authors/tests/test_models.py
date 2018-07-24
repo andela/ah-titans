@@ -18,4 +18,3 @@ class ModelTestCase(TestCase):
     def test_model_returns_readable_representation(self):
         """Test a readable string is returned for the model instance."""
         self.assertEqual(str(self.user), "nerd@nerd.com")
-    
