@@ -29,34 +29,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # The `validate` method is used to validate the email and password
         # provided by the user during registration
-        email = data.get('email', None)
         password = data.get('password', None)
 
-        # Validate the password has more than 8 characters
-        if not re.match(r"^(?=.{8,128}$).*", password):
-            raise serializers.ValidationError(
-                ' A password must be atleast 8 characters.'
-            )
         # Validate password has at least one small and capital letter
-        elif not re.match(r"^(?=.*[A-Z])(?=.*[a-z]).*", password):
+        if not re.match(r"^(?=.*[A-Z])(?=.*[a-z]).*", password):
             raise serializers.ValidationError(
-                ' A password must contain atleast one small letter and one capital letter.'
+                'A password must contain atleast one small letter and one capital letter.'
             )
         # Validate the password has atleast one number
         elif not re.match(r"^(?=.*[0-9]).*", password):
             raise serializers.ValidationError(
-                ' A password must contain atleast one number'
-            )
-
-        # Validate the email
-        if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
-            raise serializers.ValidationError(
-                "Please enter a valid email"
-            )
-
-        if User.objects.filter(email=email):
-            raise serializers.ValidationError(
-                'A user with the same email already exists'
+                'A password must contain atleast one number.'
             )
 
         return data
