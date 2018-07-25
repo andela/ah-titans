@@ -14,14 +14,14 @@ class ViewTestCase(TestCase):
             "user":{
                 "username": "nerd",
                 "email": "nerd@nerd.com",
-                "password": "secret"
+                "password": "secret123456"
                 }
             }
 
         self.login_data = {
             "user":{
                 "email": "nerd@nerd.com",
-                "password": "secret"
+                "password": "secret123456"
                 }
             }
 
@@ -37,6 +37,59 @@ class ViewTestCase(TestCase):
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_api_create_a_user_that_exists(self):
+        """Test the api cannot create a user already exists."""
+
+        response = self.client.post(
+            '/api/users/',
+            self.user_data,
+            format='json'
+        )
+        response = self.client.post(
+            '/api/users/',
+            self.user_data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_api_create_a_user_without_username(self):
+        """
+        Test the api cannot create a user without 
+        a password field.
+        """
+
+        user_data = {
+            "user": {
+                "email": "nerd@nerd.com",
+                "password": "secret123456"
+            }
+        }
+        response = self.client.post(
+            '/api/users/',
+            user_data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_api_create_a_user_without_email(self):
+        """
+        Test the api cannot create a user without 
+        an email field.
+        """
+
+        user_data = {
+            "user": {
+                "username": "nerd",
+                "password": "secret123456"
+            }
+        }
+        response = self.client.post(
+            '/api/users/',
+            user_data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_api_can_login_a_user(self):
         """Test the api can successfuly login a user."""
@@ -59,7 +112,7 @@ class ViewTestCase(TestCase):
         login_data = {
             "user":{
                 "email":"nerd@nerd.com",
-                "password":"wrong"
+                "password":"wrong123456"
             }
             }
         self.client.post(
@@ -80,9 +133,34 @@ class ViewTestCase(TestCase):
         login_data = {
             "user":{
                 "email":"wrong@nerd.com",
-                "password":"secret"
+                "password":"secret123456"
             }
             }
+
+        self.client.post(
+            '/api/users/',
+            self.user_data,
+            format='json'
+        )
+        response = self.client.post(
+            '/api/users/login',
+            login_data,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_api_login_with_short_password(self):
+        """
+        Test the api cannot login a user with a password
+        of less than 8 characters.
+        """
+
+        login_data = {
+            "user": {
+                "email": "wrong@nerd.com",
+                "password": "short"
+            }
+        }
 
         self.client.post(
             '/api/users/',
