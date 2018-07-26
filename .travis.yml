@@ -16,9 +16,10 @@ before_script:
     - export SECRET_KEY="this_is_the_secret_key"
     - export DB_NAME="titans"
     - export DB_USER="postgres"
-    - python manage.py migrate
 
 script:
+    - yes | python manage.py makemigrations
+    - python manage.py migrate
     - coverage run --source=authors manage.py test
 
 after_success:
