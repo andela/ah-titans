@@ -91,7 +91,7 @@ class ViewTestCase(TestCase):
                           status.HTTP_400_BAD_REQUEST)
 
     def test_for_capital_letter(self):
-        """Test user cannot signup if password lacks small letter"""
+        """Test user cannot signup if password lacks capital letter"""
         response = self.client.post(
             '/api/users/',
             self.capital_letter_password,
@@ -137,7 +137,7 @@ class ViewTestCase(TestCase):
                           status.HTTP_400_BAD_REQUEST)
 
     def test_user_exists(self):
-        """Test user cannot register if email exists"""
+        """Test user cannot register if username exists"""
         self.new_user = {
             "user": {
                 "username": "newtest",
