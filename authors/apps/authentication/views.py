@@ -29,12 +29,19 @@ class RegistrationAPIView(APIView):
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # calls function that sends verification email once user is registered
         SendEmail().send_verification_email(user.get('email'), request)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class Activate(APIView):
+    # Gets uidb64 and token from the send_verification_email function and
+    # if valid, changes the status of user in is_verified to True and is_active
+    # to True. The user is then redirected to a html page once the verification
+    # link is clicked
+
     permission_classes = (AllowAny, )
     def get(self, request, uidb64, token):
         try:

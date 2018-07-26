@@ -26,6 +26,8 @@ class SendEmail():
 
         token = account_activation_token.make_token(user)
         current_site = get_current_site(request)
+
+        # render template mail.txt
         body = render_to_string('mail.html', context={
             'action_url': "http://",
             'user': user,
@@ -34,8 +36,12 @@ class SendEmail():
             'token':token
         })
 
+        # set mail to email content with subject, body ,sender and recepient
+        # with html content type
         mail = EmailMessage(subject, body, "janetnim401@gmail.com", to=[email])
         mail.content_subtype = 'html'
+
+        # send email
         mail.send()
 
         return (token, urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'))
