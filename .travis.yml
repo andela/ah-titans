@@ -13,6 +13,8 @@ install:
 
 before_script:
     - psql -c "CREATE DATABASE titans;" -U postgres
+    - export SECRET_KEY="this_is_the_secret_key"
+
 script:
     - coverage run  manage.py test
 
