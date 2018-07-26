@@ -24,3 +24,4 @@ urlpatterns = [
     path('api/', include('authors.apps.profiles.urls', namespace='profiles')),
 
 ]
+
