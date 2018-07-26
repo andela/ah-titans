@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
-    
+
 ]
 
 MIDDLEWARE = [
@@ -87,9 +87,10 @@ DATABASES = {
         'USER': os.environ.get('DB_USER', ''),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', ''),
-        'PORT': ''
+        'PORT': '',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -146,3 +147,10 @@ REST_FRAMEWORK = {
         'authors.apps.authentication.backends.JWTAuthentication',
     ),
 }
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = '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'
+EMAIL_USE_TLS = True
+
