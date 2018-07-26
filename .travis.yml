@@ -18,8 +18,6 @@ before_script:
     - export DB_USER="postgres"
 
 script:
-    - yes | python manage.py makemigrations
-    - python manage.py migrate
     - coverage run  manage.py test
 
 after_success:
