@@ -113,13 +113,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self._generate_jwt_token() 
     def get_full_name(self):
       """
-      Returns username
+      Returns a user's  username
       """
       return self.username
 
     def get_short_name(self):
         """
-        Returns username
+        Returns a user's username
         """
         return self.username
 
