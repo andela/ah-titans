@@ -53,7 +53,7 @@ class Activate(APIView):
             user.is_active = True
             user.is_verified = True
             user.save()
-            return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+            return HttpResponse('Thank you for your email confirmation. Now you can login your account')
         else:
             return HttpResponse('Activation link is invalid!')
 
