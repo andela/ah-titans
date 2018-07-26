@@ -34,7 +34,7 @@ class ProfileModelTestCase(TestCase):
         """
 
         response = create_a_user()
-        self.assertEqual(response.profile, "nerd@nerd.com")
+        self.assertIn("nerd@nerd.com", str(response.profile))
     
     def test_timestamp_added(self):
         """
