@@ -113,16 +113,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self._generate_jwt_token() 
     def get_full_name(self):
       """
-      Typically, this would be the user's first and last name. Since we do
-      not store the user's real name, we return their username instead.
+      Returns username
       """
       return self.username
 
     def get_short_name(self):
         """
-        This method is required by Django for things like handling emails.
-        Typically, this would be the user's first name. Since we do not store
-        the user's real name, we return their username instead.
+        Returns username
         """
         return self.username
 
