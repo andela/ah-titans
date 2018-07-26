@@ -13,13 +13,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
        auth_header = authentication.get_authorization_header(request).split()
        auth_header_prefix = self.authentication_header_prefix.lower()
 
-       if not auth_header:
-           return None
-
-       if len(auth_header) == 1:
-           return None
-
-       elif len(auth_header) > 2:
+       if not auth_header or len(auth_header) == 1 or len(auth_header) > 2:
            return None
 
        prefix = auth_header[0].decode('utf-8')
@@ -48,4 +42,3 @@ class JWTAuthentication(authentication.BaseAuthentication):
            raise exceptions.AuthenticationFailed(msg)
 
        return (user, token)
-       
