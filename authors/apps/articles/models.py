@@ -19,4 +19,12 @@ class Article(TimestampModel):
     def __str__(self):
         return self.title
 
-# Create your models here.
+
+class Image():
+    """
+    Defines images table which stores image URLS
+    Has a `belongs to one` relationship with the Article class
+    """
+    article = models.ForeignKey(
+        Article, related_name='images', on_delete=models.CASCADE)
+    image_url = models.TextField(validators=[URLValidator()])

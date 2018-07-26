@@ -8,6 +8,7 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 
+
 class UserManager(BaseUserManager):
     """
     Django requires that custom users define their own Manager class. By
@@ -31,7 +32,6 @@ class UserManager(BaseUserManager):
         user.save()
 
         return user
-
 
     def create_superuser(self, username, email, password):
         """
@@ -135,4 +135,3 @@ class User(AbstractBaseUser, PermissionsMixin):
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token.decode('utf-8')
-
