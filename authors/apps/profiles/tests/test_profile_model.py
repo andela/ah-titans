@@ -26,7 +26,6 @@ class ProfileModelTestCase(TestCase):
 
         response = create_a_user()
         self.assertTrue(isinstance(response.profile, Profile))
-        self.assertEqual(response.profile, response.email)
     
     def test_model_returns_readable_representation(self):
         """
@@ -35,7 +34,7 @@ class ProfileModelTestCase(TestCase):
         """
 
         response = create_a_user()
-        self.assertEqual(str(response.profile), "nerd@nerd.com")
+        self.assertEqual(response.profile, "nerd@nerd.com")
     
     def test_timestamp_added(self):
         """
