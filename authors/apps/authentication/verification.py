@@ -45,6 +45,3 @@ class SendEmail():
         mail.send()
 
         return (token, urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'))
-
-
-
