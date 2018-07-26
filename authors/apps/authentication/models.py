@@ -33,7 +33,6 @@ class UserManager(BaseUserManager):
 
         return user
 
-
     def create_superuser(self, username, email, password):
         """
         Create and return a `User` with superuser powers.
@@ -115,11 +114,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         a "dynamic property".
         """
         return self._generate_jwt_token()
+
     def get_full_name(self):
-      """
-      Returns a user's  username
-      """
-      return self.username
+        """
+        Returns a user's  username
+        """
+        return self.username
 
     def get_short_name(self):
         """
@@ -135,4 +135,3 @@ class User(AbstractBaseUser, PermissionsMixin):
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token.decode('utf-8')
-
