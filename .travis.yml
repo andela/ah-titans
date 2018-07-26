@@ -16,7 +16,7 @@ before_script:
     - export SECRET_KEY="this_is_the_secret_key"
 
 script:
-    - coverage run --source=authors manage.py test authors
+    - coverage run --source=authors manage.py test
 
 after_success:
     - coveralls
