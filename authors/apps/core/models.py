@@ -3,8 +3,7 @@ from django.db import models
 
 class TimestampModel(models.Model):
     """
-    A class to auto add `created_at` and `updated_at`
-    timestamp fields to model(s)
+    A class to auto add `created_at` and `updated_at` timestamp fields to model(s)
     """
     # timestamp for when an entry is made into a model(table)
     created_at = models.DateTimeField(auto_now_add=True)
