@@ -47,7 +47,6 @@ class VerifyTestCase(TestCase):
         msg = mail.outbox[0]
         self.assertEqual(msg.subject, 'Verify your Authors Haven account')
 
-
     def test_account_is_verified(self):
         """Test if registered user has verified their account from link sent in tge email"""
 
