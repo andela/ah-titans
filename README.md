@@ -1,6 +1,6 @@
 Authors Haven - A Social platform for the creative at heart.
 =======
-[![Build Status](https://travis-ci.org/andela/ah-titans.svg?branch=develop)](https://travis-ci.org/andela/ah-titans)
+[![Build Status](https://travis-ci.org/andela/ah-titans.svg?branch=develop)](https://travis-ci.org/andela/ah-titans) [![Coverage Status](https://coveralls.io/repos/github/andela/ah-titans/badge.svg?branch=ch-integrate-travis-159053952)](https://coveralls.io/github/andela/ah-titans?branch=ch-integrate-travis-159053952)
 
 ## Vision
 Create a community of like minded authors to foster inspiration and innovation
@@ -391,7 +391,3 @@ No additional parameters required
 ### Get Tags
 
 `GET /api/tags`
-
-
-
-
