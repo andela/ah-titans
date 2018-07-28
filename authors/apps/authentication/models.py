@@ -32,7 +32,6 @@ class UserManager(BaseUserManager):
 
         return user
 
- 
     def create_superuser(self, username, email, password):
         """
         Create and return a `User` with superuser powers.
@@ -110,7 +109,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         The `@property` decorator above makes this possible. `token` is called
         a "dynamic property".
         """
-        return self._generate_jwt_token() 
+        return self._generate_jwt_token()
+
     def get_full_name(self):
         """
         This method is required by Django for things like handling emails.
@@ -133,4 +133,3 @@ class User(AbstractBaseUser, PermissionsMixin):
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token.decode('utf-8')
-        

@@ -2,7 +2,11 @@ from rest_framework import serializers
 from .models import Article
 
 
-class ArticleSeriaizer(serializers.Serializer):
+class ArticleSeriaizer(serializers.ModelSerializer):
+    """
+    Defines the article serializer
+
+    """
 
     title = serializers.CharField(required=True)
     body = serializers.CharField(required=True)
