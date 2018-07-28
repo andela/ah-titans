@@ -1,12 +1,12 @@
 """
 Module contains Models for article related tables
 """
-from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampModel
 from django.db import models
 from django.core.validators import URLValidator
 from django.db.models.signals import pre_save
 from django.utils.text import slugify
+
 
 class Article(TimestampModel):
     """
@@ -42,15 +42,16 @@ def pre_save_article_receiver(sender, instance, *args, **kwargs):
     """
     slug = slugify(instance.title)
 
-    #check if slug exists
+    # check if slug exists
     num = 1
     unique_slug = slug
     # loops until a unique slug is generated
     while Article.objects.filter(slug=unique_slug).exists():
-        unique_slug = "%s-%s" %(slug, num)
+        unique_slug = "%s-%s" % (slug, num)
         num += 1
 
     instance.slug = unique_slug
 
-# called just before a save is made in the db
+
+# Called just before a save is made in the db
 pre_save.connect(pre_save_article_receiver, sender=Article)
