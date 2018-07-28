@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 #my local imports
-from ...apps.articles.models import Article, Image
+from ...apps.articles.models import Article
 
 class CreateArticle():
     def __init__(self):
