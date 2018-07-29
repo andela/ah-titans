@@ -36,7 +36,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
 
     def list(self, request):
         """
-        Overides the list method to get all articles
+        Overrides the list method to get all articles
         """
         queryset = Article.objects.all()
         serializer = self.serializer_class(
