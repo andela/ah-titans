@@ -10,7 +10,7 @@ class Profile(models.Model):
     )
     bio = models.TextField(blank=True)
     image = models.URLField(blank=True)
-    following = models.BooleanField(default=False)
+    interests = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

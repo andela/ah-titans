@@ -10,11 +10,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     bio = serializers.CharField(allow_blank=True, required=False)
     image = serializers.SerializerMethodField()
-    following = serializers.BooleanField(default=False)
+    interests = serializers.CharField(allow_blank=True, required=False)
 
     class Meta:
         model = Profile
-        fields = ('username', 'bio', 'image', 'following')
+        fields = ('username', 'bio', 'image', 'interests')
         read_only_fields = ('username',)
 
     def get_image(self, obj):
