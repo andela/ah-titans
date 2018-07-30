@@ -7,7 +7,7 @@ from authors.apps.authentication.models import User
 from ..models import Profile
 
 
-def create_a_user(username="nerd", email="nerd@nerd.com", password="secret123456"):
+def create_a_user(username="nerd", email="nerd@nerd.com", password="Secret123456"):
     """Creating a test user"""
 
     user = User.objects.create_user(username, email, password)
