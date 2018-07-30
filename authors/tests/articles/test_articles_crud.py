@@ -84,7 +84,7 @@ class ViewTestCase(TestCase):
         request = self.factory.get(reverse("authentication:activate", args=[uid, token]))
         force_authenticate(request, user_obj, token=user_obj.token)
         view = Activate.as_view()
-        response = view(request, uidb64=uid, token=token)
+        view(request, uidb64=uid, token=token)
         user = User.objects.get()
         return user.is_verified
 
