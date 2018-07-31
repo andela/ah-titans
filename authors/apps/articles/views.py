@@ -1,7 +1,7 @@
 from .models import Article
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound
-from .serializers import ArticleSeriaizer
+from .serializers import ArticleSerializer
 from .renderers import ArticleJSONRenderer
 from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets
@@ -21,7 +21,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
     queryset = Article.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
-    serializer_class = ArticleSeriaizer
+    serializer_class = ArticleSerializer
 
     def create(self, request):
         """
