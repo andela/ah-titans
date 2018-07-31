@@ -204,7 +204,7 @@ class ViewTestCase(TestCase):
         """
         article = {
             "article": {
-                "title": "*&^#(((!&^#^*(#(#(",
+                "title": "!@#$%^&*()",
                 "description": "Ever wonder how?",
                 "body": "You have to believe",
             }
@@ -219,7 +219,7 @@ class ViewTestCase(TestCase):
         article = {
             "article": {
                 "title": "How to train your dragon",
-                "description": "*&^#(((!&^#^*(#(#(",
+                "description": "*&^#(!&^#^*(#(#(",
                 "body": "You have to believe",
             }
         }
