@@ -21,8 +21,5 @@ urlpatterns = [
     path('api/', include('authors.apps.authentication.urls',
                          namespace='authentication')),
     path('api/', include('authors.apps.articles.urls', namespace="articles")),
-<<<<<<< HEAD
-=======
     path('api/', include('authors.apps.profiles.urls', namespace="profiles"))
->>>>>>> 993d558a15d64958f042544d691f15d1dc73d8b8
 ]
