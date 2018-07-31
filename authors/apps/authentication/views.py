@@ -19,7 +19,7 @@ from social_core.exceptions import MissingBackend
 from .renderers import UserJSONRenderer
 from .verification import SendEmail, account_activation_token
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer, SocialSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer, SocialSerializer, ResetPassSerializer
 )
 from .models import User
 
@@ -53,6 +53,7 @@ class Activate(APIView):
     # link is clicked
 
     permission_classes = (AllowAny, )
+
     def get(self, request, uidb64, token):
         try:
             uid = force_text(urlsafe_base64_decode(uidb64))
@@ -64,6 +65,29 @@ class Activate(APIView):
             user.is_verified = True
             user.save()
             return HttpResponse('Thank you for your email confirmation. Now you can login your account')
+        else:
+            return HttpResponse('Activation link is invalid!')
+
+
+class Reset(APIView):
+    # Gets uidb64 and token from the send_verification_email function and
+    # if valid, changes the status of user in is_verified to True and is_active
+    # to True. The user is then redirected to a html page once the verification
+    # link is clicked
+
+    permission_classes = (AllowAny, )
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.is_verified = True
+            user.save()
+            return HttpResponse('You can now reset your password.')
         else:
             return HttpResponse('Activation link is invalid!')
 
@@ -83,6 +107,29 @@ class LoginAPIView(APIView):
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ResetPassAPIView(APIView):
+    """Reset password"""
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = ResetPassSerializer
+
+    def post(self, request):
+        user = request.data.get('user', {})
+
+        # Notice here that we do not call `serializer.save()` like we did for
+        # the registration endpoint. This is because we don't actually have
+        # anything to save. Instead, the `validate` method on our serializer
+        # handles everything we need.
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+
+        if not serializer.data["email"] == "User with this email does not exist":
+            # calls function that sends verification email once user is registered
+            SendEmail().send_reset_pass_email(user.get('email'), request)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -106,11 +153,11 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
             serializer_data = {
                 'username': user_data.get('username', request.user.username),
                 'email': user_data.get('email', request.user.email),
-                
+
                 'profile': {
                     'bio': user_data.get('bio', request.user.profile.bio),
-                    'interests': user_data.get('interests', 
-                        request.user.profile.interests),
+                    'interests': user_data.get('interests',
+                                               request.user.profile.interests),
                     'image': user_data.get('image', request.user.profile.image)
                 }
             }
@@ -128,7 +175,6 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(message, status=status.HTTP_403_FORBIDDEN)
 
 
-
 class ExchangeToken(CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -141,8 +187,9 @@ class ExchangeToken(CreateAPIView):
         strategy = load_strategy(request)
 
         try:
-            backend = load_backend(strategy=strategy, name=backend, redirect_uri=None)
-        except MissingBackend  as e:
+            backend = load_backend(
+                strategy=strategy, name=backend, redirect_uri=None)
+        except MissingBackend as e:
             return Response(
                 {'errors': {
                     'token': 'Invalid token',
@@ -166,13 +213,12 @@ class ExchangeToken(CreateAPIView):
                 token = jwt.encode({
                     'id': user.pk,
                     'exp': int(dt.strftime('%s'))
-                    }, settings.SECRET_KEY, algorithm='HS256')
-
+                }, settings.SECRET_KEY, algorithm='HS256')
 
                 token = token.decode('utf-8')
                 return Response({'token': token})
             else:
-              
+
                 return Response(
                     {'errors': {"user": 'This user account is inactive'}},
                     status=status.HTTP_400_BAD_REQUEST,
