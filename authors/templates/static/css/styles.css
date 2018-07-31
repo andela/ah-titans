@@ -10,6 +10,10 @@ main {
 .clear{
     margin-top: 10%
 }
+.logoimage {
+    height: 85px;
+    width: 85ps;
+}
 /* label color */
 
 .input-field label {
