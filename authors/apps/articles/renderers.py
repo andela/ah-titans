@@ -10,6 +10,10 @@ class ArticleJSONRenderer(JSONRenderer):
         """
         Render the articles in a structured manner for the end user.
         """
+        if len(data) <= 1:
+            return json.dumps({
+                'article': data
+            })
         return json.dumps({
-            'article': data
+            'articles': data
         })
