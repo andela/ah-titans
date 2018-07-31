@@ -1,12 +1,13 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
+from django.urls import reverse
+
 from rest_framework import status
+from rest_framework.test import APIClient
+from rest_framework.test import APIRequestFactory
+from rest_framework.test import force_authenticate
 import json
 from authors.apps.authentication.models import User
 from authors.apps.authentication.verification import SendEmail
-from rest_framework.test import APIRequestFactory
-from django.urls import reverse
-from rest_framework.test import force_authenticate
 from authors.apps.authentication.views import Activate
 
 
@@ -55,7 +56,7 @@ class ViewTestCase(TestCase):
         """
         Creates a user without verifying them
         """
-        response = self.client.post(
+        self.client.post(
             '/api/users/',
             self.testUser2,
             format='json'
@@ -73,30 +74,31 @@ class ViewTestCase(TestCase):
         json_response = json.loads(response.content)
         return json_response.get('user').get('token')
 
-    def create_and_verify_user(self):
+    def create_and_verify_user(self, user_profile):
         """
         Verify user email
         """
-        user_obj = User.objects.create_user(username="Jacob", email="jake@jake.jake",
-                                            password="Pass123$")
+        user_obj = User.objects.create_user(username=user_profile.get('user').get('username'),
+                                            email=user_profile.get('user').get('email'),
+                                            password=user_profile.get('user').get('password'))
         request = self.factory.get(reverse("authentication:register"))
         token, uid = SendEmail().send_verification_email(user_obj.email, request)
         request = self.factory.get(reverse("authentication:activate", args=[uid, token]))
         force_authenticate(request, user_obj, token=user_obj.token)
         view = Activate.as_view()
         view(request, uidb64=uid, token=token)
-        user = User.objects.get()
+        user = User.objects.last()
         return user.is_verified
 
-    def login_verified_user(self):
+    def login_verified_user(self, user_profile):
         """
         Logs in created and verified user to get token
         :return token
         """
-        if self.create_and_verify_user() is True:
+        if self.create_and_verify_user(user_profile) is True:
             response = self.client.post(
                 '/api/users/login/',
-                self.testUser1,
+                user_profile,
                 format='json'
             )
             json_response = json.loads(response.content)
@@ -132,7 +134,7 @@ class ViewTestCase(TestCase):
     # tests for field validations
     def test_create_article_missing_required_field(self):
         """Test article cannot be created with missing fields"""
-        token = self.login_verified_user()
+        token = self.login_verified_user(self.testUser1)
         # test missing title
         article = {
             "article": {
@@ -163,7 +165,7 @@ class ViewTestCase(TestCase):
 
     def test_create_article_empty_required_field(self):
         """Test article cannot be created with missing fields"""
-        token = self.login_verified_user()
+        token = self.login_verified_user(self.testUser1)
         # test empty title
         article = {
             "article": {
@@ -200,16 +202,29 @@ class ViewTestCase(TestCase):
         Test article cannot be created with invalid title
         for instance plain symbols
         """
+        article = {
+            "article": {
+                "title": "*&^#(((!&^#^*(#(#(",
+                "description": "Ever wonder how?",
+                "body": "You have to believe",
+            }
+        }
+        response = self.create_article(self.login_verified_user(self.testUser1), article)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_article_invalid_description(self):
-        """Test article description is valid
+        """Test article description is invalid
         for instance not plain symbols
         """
-
-    def test_create_article_invalid_description(self):
-        """Test article body is valid
-        for instance not plain symbols
-        """
+        article = {
+            "article": {
+                "title": "How to train your dragon",
+                "description": "*&^#(((!&^#^*(#(#(",
+                "body": "You have to believe",
+            }
+        }
+        response = self.create_article(self.login_verified_user(self.testUser1), article)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     # end tests for field validations
 
@@ -218,14 +233,14 @@ class ViewTestCase(TestCase):
         """
         Test that a verified and authenticated user can create an article
         """
-        response = self.create_article(self.login_verified_user(), self.testArticle1)
+        response = self.create_article(self.login_verified_user(self.testUser1), self.testArticle1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_authenticated_user_can_update_article(self):
         """
         Test that a verified and authenticated user can update an article
         """
-        token = self.login_verified_user()
+        token = self.login_verified_user(self.testUser1)
         # test cannot update nonexistent article
         response = self.update_article(token, 'how-to-train-your-dragon', self.testArticle1)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -241,7 +256,7 @@ class ViewTestCase(TestCase):
         """
         Test that a verified and authenticated user can delete an article
         """
-        token = self.login_verified_user()
+        token = self.login_verified_user(self.testUser1)
         # test cannot delete nonexistent article
         response = self.delete_article(token, 'how-to-train-your-dragon')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -250,7 +265,7 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # delete the added article
         response = self.delete_article(token, 'how-to-train-your-dragon')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # make sure it is deleted
         response = self.delete_article(token, 'how-to-train-your-dragon')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -301,12 +316,12 @@ class ViewTestCase(TestCase):
         """
         # user gets relevant message when no articles found
         response = self.client.get('/api/articles/')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # create 2 articles
-        token = self.login_verified_user()
-        self.create_article(token)
-        self.create_article(token)
+        token = self.login_verified_user(self.testUser1)
+        self.create_article(token, self.testArticle1)
+        self.create_article(token, self.testArticle2)
 
         response = self.client.get('/api/articles/')
         json_response = json.loads(response.content)
@@ -322,12 +337,34 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # sign in user and create article with slug:how-to-train-your-dragon
-        self.create_article(self.login_verified_user(), self.testArticle1)
+        self.create_article(self.login_verified_user(self.testUser1), self.testArticle1)
 
         response = self.client.get('/api/articles/how-to-train-your-dragon/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('how-to-train-your-dragon', response.content.decode())
     # end tests for get articles
+
+    def test_user_cannot_edit_others_article(self):
+        """Test that any verified user cannot edit tests that they did not create"""
+        token_user1 = self.login_verified_user(self.testUser1)
+        token_user2 = self.login_verified_user(self.testUser2)
+
+        # user 1 creates an article
+        self.create_article(token_user1, self.testArticle1)
+
+        response = self.update_article(token_user2, '/api/articles/how-to-train-your-dragon/', self.testArticle2)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_cannot_delete_others_article(self):
+        """Test that any verified user cannot edit tests that they did not create"""
+        token_user1 = self.login_verified_user(self.testUser1)
+        token_user2 = self.login_verified_user(self.testUser2)
+
+        # user 1 creates an article
+        self.create_article(token_user1, self.testArticle1)
+
+        response = self.delete_article(token_user2, '/api/articles/how-to-train-your-dragon/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def tearDown(self):
         """
