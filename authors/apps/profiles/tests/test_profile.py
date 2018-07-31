@@ -44,7 +44,7 @@ class ProfileTestcase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_profile_update_without_uthentication(self):
+    def test_profile_update_without_authentication(self):
         """Test api cannot update a user profile without authentication"""
 
         create_a_user()
