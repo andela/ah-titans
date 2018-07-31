@@ -40,7 +40,7 @@ class ProfileTestcase(TestCase):
         create_a_user()
 
         response = self.client.get(
-            '/api/profiles/nerd'
+            '/api/profiles/nerd/'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
