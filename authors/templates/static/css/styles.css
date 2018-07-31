@@ -13,6 +13,7 @@ main {
 .logoimage {
     height: 85px;
     width: 85ps;
+    padding-bottom: 20px;
 }
 /* label color */
 
