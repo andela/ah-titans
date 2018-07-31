@@ -67,6 +67,27 @@ class Activate(APIView):
         else:
             return HttpResponse('Activation link is invalid!')
 
+class Reset(APIView):
+    # Gets uidb64 and token from the send_verification_email function and
+    # if valid, changes the status of user in is_verified to True and is_active
+    # to True. The user is then redirected to a html page once the verification
+    # link is clicked
+
+    permission_classes = (AllowAny, )
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.is_verified = True
+            user.save()
+            return HttpResponse('You can now reset your password.')
+        else:
+            return HttpResponse('Activation link is invalid!')
+
 
 class Reset(APIView):
     # Gets uidb64 and token from the send_verification_email function and
@@ -108,6 +129,28 @@ class LoginAPIView(APIView):
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ResetPassAPIView(APIView):
+    """Reset password"""
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = ResetPassSerializer
+
+    def post(self, request):
+        user = request.data.get('user', {})
+
+        # Notice here that we do not call `serializer.save()` like we did for
+        # the registration endpoint. This is because we don't actually have
+        # anything to save. Instead, the `validate` method on our serializer
+        # handles everything we need.
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+
+        if not serializer.data["email"] == "User with this email does not exist":
+            # calls function that sends verification email once user is registered
+            SendEmail().send_reset_pass_email(user.get('email'), request)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

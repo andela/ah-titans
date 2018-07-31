@@ -1,10 +1,15 @@
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
+<<<<<<< HEAD
 from rest_framework.serializers import Serializer
 from rest_framework.validators import UniqueValidator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
+=======
+from rest_framework.validators import UniqueValidator
+
+>>>>>>> [Feature #159053958] A user can receive a reset password email
 from .models import User
 from .backends import JWTAuthentication
 from authors.apps.profiles.serializers import ProfileSerializer
@@ -116,6 +121,28 @@ class LoginSerializer(serializers.Serializer):
 
         }
 
+class ResetPassSerializer(serializers.Serializer):
+    """Handles serialization of password reset"""
+    # email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField()
+    
+    
+    def validate(self, data):
+        # The `validate` method is where we make sure that the current
+        # instance of `LoginSerializer` has "valid". In the case of logging a
+        # user in, this means validating that they've provided an email
+        # and password and that this combination matches one of the users in
+        # our database.
+        email = data.get('email', None)
+
+        if not User.objects.filter(email=email).exists():
+            return {
+                'email': 'User with this email does not exist'
+            }
+    
+        return {
+            'email': 'Password reset email successfully sent'
+        }
 
 class ResetPassSerializer(serializers.Serializer):
     """Handles serialization of password reset"""
