@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from .models import User
 from .backends import JWTAuthentication
@@ -113,6 +114,28 @@ class LoginSerializer(serializers.Serializer):
 
         }
 
+class ResetPassSerializer(serializers.Serializer):
+    """Handles serialization of password reset"""
+    # email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField()
+    
+    
+    def validate(self, data):
+        # The `validate` method is where we make sure that the current
+        # instance of `LoginSerializer` has "valid". In the case of logging a
+        # user in, this means validating that they've provided an email
+        # and password and that this combination matches one of the users in
+        # our database.
+        email = data.get('email', None)
+
+        if not User.objects.filter(email=email).exists():
+            return {
+                'email': 'User with this email does not exist'
+            }
+    
+        return {
+            'email': 'Password reset email successfully sent'
+        }
 
 class UserSerializer(serializers.ModelSerializer):
     """Handles serialization and deserialization of User objects."""
