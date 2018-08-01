@@ -24,4 +24,4 @@ after_success:
 deploy:
   provider: heroku
   api_key:
-    secure: "33fea817-3dbd-445a-9de9-1cf1a9363995"
+    secure: "78df2cff-49c4-4cc5-a1d1-5d2f2ac7d061"
