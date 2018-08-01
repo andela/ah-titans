@@ -1,9 +1,8 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
-from rest_framework import status
+from authors.apps.authentication.models import User
 
-#my local imports
 from ...apps.articles.models import Article
+
 
 class CreateArticle():
     def __init__(self):
@@ -13,13 +12,20 @@ class CreateArticle():
                 incididunt ut labore et dolore magna aliqua. Ut enim 
                 ad minim veniam, quis nostrud exercitation ullamco laboris"""
         self.description = "Django"
-        
+
+    def create_a_user(self, username="nerd", email="nerd@nerd.com", password="secret"):
+        """Creating a test user"""
+        user = User.objects.create_user(username, email, password)
+        user.save()
+        return user
+
     def create_article(self):
         """Creating a test article"""
+        user = self.create_a_user()
         article = Article.objects.create(
             title=self.title, 
             description=self.description, 
-            body=self.body)
+            body=self.body, author=user.profile)
         article.save()
         return article
 
@@ -42,7 +48,6 @@ class ModelTestCase(TestCase):
         response = CreateArticle().create_article()
         self.assertIn(str(response), "Django is life")
 
-    
     def test_timestamp_added(self):
         """
         Test that article model adds a `created_at` timestamp 

@@ -249,7 +249,7 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # update the added article
         response = self.update_article(token, 'how-to-train-your-dragon', self.testArticle2)
-        self.assertIn('how-to-feed-your-dragon', response.content.decode())
+        self.assertIn('how-to-train-your-dragon', response.content.decode())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_authenticated_user_can_delete_article(self):
@@ -350,10 +350,11 @@ class ViewTestCase(TestCase):
         token_user2 = self.login_verified_user(self.testUser2)
 
         # user 1 creates an article
-        self.create_article(token_user1, self.testArticle1)
+        response = self.create_article(token_user1, self.testArticle1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.update_article(token_user2, '/api/articles/how-to-train-your-dragon/', self.testArticle2)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response = self.update_article(token_user2, 'how-to-train-your-dragon', self.testArticle2)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_cannot_delete_others_article(self):
         """Test that any verified user cannot edit tests that they did not create"""
@@ -363,8 +364,8 @@ class ViewTestCase(TestCase):
         # user 1 creates an article
         self.create_article(token_user1, self.testArticle1)
 
-        response = self.delete_article(token_user2, '/api/articles/how-to-train-your-dragon/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response = self.delete_article(token_user2, 'how-to-train-your-dragon')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def tearDown(self):
         """
