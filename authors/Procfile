@@ -1,2 +1,3 @@
-release: python manage.py migrate --noinput
-web: python manage.py runserver --host 0.0.0.0 --port ${PORT}
+web: gunicorn --log-file - -b 0.0.0.0:$PORT -w 2 authors.wsgi
+migrate: ./manage.py migrate
+triggers: ./manage.py ensuretriggers
