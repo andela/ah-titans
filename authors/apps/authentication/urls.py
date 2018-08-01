@@ -2,10 +2,14 @@ from django.urls import path
 from rest_framework import routers
 from .views import (
 <<<<<<< HEAD
+<<<<<<< HEAD
     LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView, Activate, ResetPassAPIView, Reset, PassResetAPIView
 =======
     LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView, Activate, ExchangeToken, ResetPassAPIView, Reset
 >>>>>>> [Feature #159053958] A user can receive a reset password email
+=======
+    LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView, Activate, ExchangeToken, ResetPassAPIView, Reset, PassResetAPIView
+>>>>>>> [Chore #159053958] Add tests for password reset feature
 )
 app_name = 'authentication'
 urlpatterns = [
@@ -23,5 +27,9 @@ urlpatterns = [
 
     path('users/reset_pass/', ResetPassAPIView.as_view()),
     path('reset/<uidb64>/<token>/', Reset.as_view(), name="reset"),
+<<<<<<< HEAD
 >>>>>>> [Feature #159053958] A user can receive a reset password email
+=======
+    path('users/pass_reset/', PassResetAPIView.as_view()),
+>>>>>>> [Chore #159053958] Add tests for password reset feature
 ]
