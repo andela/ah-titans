@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework import routers
 from .views import (
-    LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView, Activate, ResetPassAPIView, Reset
+    LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView, Activate, ResetPassAPIView, Reset, PassResetAPIView
 )
 app_name = 'authentication'
 urlpatterns = [
@@ -11,4 +11,5 @@ urlpatterns = [
     path('activate/<uidb64>/<token>/', Activate.as_view(), name="activate"),
     path('users/reset_pass/', ResetPassAPIView.as_view()),
     path('reset/<uidb64>/<token>/', Reset.as_view(), name="reset"),
+    path('users/pass_reset/', PassResetAPIView.as_view()),
 ]
