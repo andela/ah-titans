@@ -1,6 +1,6 @@
 from .models import Article
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from .serializers import ArticleSerializer
 from .renderers import ArticleJSONRenderer
 from rest_framework.response import Response
@@ -30,7 +30,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
         article = request.data.get('article', {})
         serializer = self.serializer_class(data=article)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(author=request.user.profile)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -69,7 +69,10 @@ class ArticleViewSet(mixins.CreateModelMixin,
         try:
             serializer_instance = self.queryset.get(slug=slug)
         except Article.DoesNotExist:
-            raise NotFound("An article with this slug doesn't exist")
+            raise NotFound("An article with this slug doesn't exist.")
+
+        if not serializer_instance.author_id == request.user.profile.id:
+            raise PermissionDenied("You are not authorized to edit this article.")
 
         serializer_data = request.data.get('article', )
 
@@ -81,7 +84,6 @@ class ArticleViewSet(mixins.CreateModelMixin,
         )
 
         serializer.is_valid(raise_exception=True)
-        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -94,6 +96,9 @@ class ArticleViewSet(mixins.CreateModelMixin,
         except Article.DoesNotExist:
             raise NotFound("An article with this slug doesn't exist")
 
-        article.delete()
+        if article.author_id == request.user.profile.id:
+            article.delete()
+        else:
+            raise PermissionDenied("You are not authorized to delete this article.")
 
         return Response(None, status=status.HTTP_204_NO_CONTENT)

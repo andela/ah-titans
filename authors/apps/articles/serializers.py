@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from .models import Article
+from rest_framework.fields import CurrentUserDefault
+from authors.apps.profiles.serializers import ProfileSerializer
+
 import re
 
 
@@ -11,15 +14,15 @@ class ArticleSerializer(serializers.ModelSerializer):
     body = serializers.CharField(required=True)
     description = serializers.CharField(required=True)
     slug = serializers.SlugField(required=False)
-    image_url = serializers.ImageField(required=False)
-
+    image_url = serializers.URLField(required=False)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
+    author = ProfileSerializer(read_only=True)
 
     class Meta:
         model = Article
         fields = ['title', 'slug', 'body',
-                  'description', 'image_url', 'created_at', 'updated_at']
+                  'description', 'image_url', 'created_at', 'updated_at', 'author']
 
     def create(self, validated_data):
         return Article.objects.create(**validated_data)
