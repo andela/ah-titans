@@ -19,5 +19,5 @@ class ArticleJSONRenderer(JSONRenderer):
                 'articles': data
             })
         return json.dumps({
-                'article': 'No article found.'
-            })
+            'article': 'No article found.'
+        })

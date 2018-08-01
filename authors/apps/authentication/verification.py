@@ -35,6 +35,7 @@ class SendEmail():
             'uid':urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'),
             'token':token
         })
+        print(urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'))
 
         # set mail to email content with subject, body ,sender and recepient
         # with html content type

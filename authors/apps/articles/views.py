@@ -72,7 +72,8 @@ class ArticleViewSet(mixins.CreateModelMixin,
             raise NotFound("An article with this slug doesn't exist.")
 
         if not serializer_instance.author_id == request.user.profile.id:
-            raise PermissionDenied("You are not authorized to edit this article.")
+            raise PermissionDenied(
+                "You are not authorized to edit this article.")
 
         serializer_data = request.data.get('article', )
 
@@ -99,6 +100,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
         if article.author_id == request.user.profile.id:
             article.delete()
         else:
-            raise PermissionDenied("You are not authorized to delete this article.")
+            raise PermissionDenied(
+                "You are not authorized to delete this article.")
 
         return Response(None, status=status.HTTP_204_NO_CONTENT)
