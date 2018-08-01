@@ -4,13 +4,21 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import User
+from rest_framework.decorators import api_view, permission_classes
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.http.response import HttpResponse
+from datetime import datetime, timedelta
+from social_core.backends.utils import load_backends
 from .verification import SendEmail, account_activation_token
+from social_django.utils import psa
+import jwt
+from requests.exceptions import HTTPError
+from django.conf import settings
+
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer, SocialSerializer
 )
 
 
@@ -116,3 +124,55 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         message = {"Error": "Email for this user is not verified"}
         return Response(message, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(http_method_names=['POST'])
+@permission_classes([AllowAny])
+@psa('social:complete')
+def exchange_token(request, backend):
+    #access token from front-end used to get user information
+    #and a new user created.If user already exists then token 
+    #is given to the user.
+    serializer = SocialSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        try:
+            nfe = settings.NON_FIELD_ERRORS_KEY
+        except AttributeError:
+            nfe = 'non_field_errors'
+
+        try:
+            token = serializer.data.get("access_token")
+         
+            user = request.backend.do_auth(serializer.validated_data['access_token'])
+        except HTTPError as e:
+          
+            return Response(
+                {'errors': {
+                    'token': 'Invalid token',
+                    'detail': str(e),
+                }},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if user:
+            if user.is_active:
+                dt = datetime.now() + timedelta(days=30)
+                token = jwt.encode({
+                    'id': user.pk,
+                    'exp': int(dt.strftime('%s'))
+                    }, settings.SECRET_KEY, algorithm='HS256')
+
+
+                token = token.decode('utf-8')
+                return Response({'token': token})
+            else:
+              
+                return Response(
+                    {'errors': {nfe: 'This user account is inactive'}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                {'errors': {nfe: "Authentication Failed"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
