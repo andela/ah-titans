@@ -1,0 +1,1 @@
+web: gunicorn ah-titans.wsgi —-log-file -
