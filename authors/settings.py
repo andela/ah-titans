@@ -24,11 +24,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost', 'ah-titans-api.herokuapp.com']
-=======
-ALLOWED_HOSTS = ['*']
->>>>>>> [Chore #159431016] Modify the Procfile
 
 # Application definition
 
