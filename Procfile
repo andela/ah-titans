@@ -1,1 +1,1 @@
-web: gunicorn ah-titans.wsgi —-log-file -
+web: gunicorn authors.wsgi —-log-file -
