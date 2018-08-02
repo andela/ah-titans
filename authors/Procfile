@@ -1,1 +1,2 @@
-web: python ah-titans/manage.py collectstatic --noinput; bin/gunicorn_django --workers=4 --bind=0.0.0.0:$PORT ah-titans/settings.py
+web:      bin/python ah-titans/manage.py run_gunicorn -b 0.0.0.0:\$PORT -w 3
+worker:   bin/python ah-titans/manage.py celeryd -E -B --loglevel=INFO
