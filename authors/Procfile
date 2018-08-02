@@ -1,3 +1,1 @@
-web: gunicorn --log-file - -b 0.0.0.0:$PORT -w 2 authors.wsgi
-migrate: ./manage.py migrate
-triggers: ./manage.py ensuretriggers
+web: python ah-titans/manage.py collectstatic --noinput; bin/gunicorn_django --workers=4 --bind=0.0.0.0:$PORT ah-titans/settings.py
