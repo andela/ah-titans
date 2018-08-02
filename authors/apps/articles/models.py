@@ -29,7 +29,6 @@ def pre_save_article_receiver(sender, instance, *args, **kwargs):
     A slug will always be unique
     """
     slug = slugify(instance.title)
-    # check if slug exists
     num = 1
     unique_slug = slug
     # loops until a unique slug is generated
