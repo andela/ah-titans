@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'rest_framework_social_oauth2',
 
 
+    'authors.apps.articles',
 ]
 
 MIDDLEWARE = [
@@ -97,10 +98,9 @@ DATABASES = {
         'USER': os.environ.get('DB_USER', ''),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', ''),
-        'PORT': '',
+        'PORT': ''
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -150,7 +150,7 @@ CORS_ORIGIN_WHITELIST = (
 AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
-    # 'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
+    'EXCEPTION_HANDLER': 'authors.apps.core.exceptions.core_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'error',
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
