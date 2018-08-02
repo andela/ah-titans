@@ -1,2 +1,1 @@
-web:      bin/python ah-titans/manage.py run_gunicorn -b 0.0.0.0:\$PORT -w 3
-worker:   bin/python ah-titans/manage.py celeryd -E -B --loglevel=INFO
+web: python manage.py runserver "0.0.0.0:$PORT"
