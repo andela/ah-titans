@@ -18,11 +18,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     updated_at = serializers.DateTimeField(read_only=True)
     author = ProfileSerializer(read_only=True)
     rating = serializers.IntegerField(required=False)
+    raters = serializers.IntegerField(initial=0, allow_null=True)
 
     class Meta:
         model = Article
         fields = ['title', 'slug', 'body',
-                  'description', 'image_url', 'created_at', 'updated_at', 'author', 'rating']
+                  'description', 'image_url', 'created_at', 'updated_at', 'author', 'rating', 'raters']
 
     def create(self, validated_data):
         return Article.objects.create(**validated_data)
