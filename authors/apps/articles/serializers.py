@@ -95,13 +95,13 @@ class RatingSerializer(serializers.ModelSerializer):
         # validate the rate is not a string but an integer
         if isinstance(rate, str):
             raise serializers.ValidationError(
-                """Invalid entry. The rate must be a value between 1 and 5"""
+                """A valid integer is required."""
             )
 
         # validate user soes not post an empy value
         if rate is " ":
             raise serializers.ValidationError(
-                """You cannot give an empty rating"""
+                """A valid integer is required."""
             )
 
         return {"rating": rate}
