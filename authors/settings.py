@@ -159,7 +159,6 @@ EMAIL_HOST_USER = 'apikey'
 EMAIL_USE_TLS = True
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
-<<<<<<< HEAD
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.facebook.FacebookAppOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
@@ -209,7 +208,6 @@ SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
 SOCIAL_AUTH_USER_FIELDS = ['email', 'username']
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
-=======
 # Configure Django App for Heroku.
 import django_heroku
 django_heroku.settings(locals())
@@ -218,4 +216,4 @@ import dj_database_url
 
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
->>>>>>> develop
+
