@@ -82,7 +82,7 @@ class ViewTestCase(TestCase):
 
     def login_unverified_user(self):
         """
-        Creates a test user
+        Logs in and unverified user
         """
         response = self.client.post(
             '/api/users/login/',
@@ -168,7 +168,7 @@ class ViewTestCase(TestCase):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_rate_not_an_integer(self):
-        """Test user cannot give an alphabetic rate as value"""
+        """Test user cannot give an alphabetic input as rate"""
 
         token = self.login_verified_user(self.test_user2)
         self.create_article(token, self.article)
