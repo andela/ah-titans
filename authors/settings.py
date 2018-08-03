@@ -207,3 +207,4 @@ SOCIAL_AUTH_PIPELINE = (
 SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
 SOCIAL_AUTH_USER_FIELDS = ['email', 'username']
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
+
