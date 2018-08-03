@@ -31,6 +31,8 @@ def pre_save_article_receiver(sender, instance, *args, **kwargs):
     Method uses a signal to add slug to an article before saving it
     A slug will always be unique
     """
+    if instance.slug:
+        return
     slug = slugify(instance.title)
     num = 1
     unique_slug = slug
