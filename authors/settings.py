@@ -39,18 +39,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'social_django',
 
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
-
-    'social_django',
-    'social.apps.django_app.default',
-    
-    'oauth2_provider',
-    'rest_social_auth',
-    'rest_framework_social_oauth2',
-
 
     'authors.apps.articles',
 ]
@@ -79,6 +72,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],
@@ -155,8 +150,6 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication', 
-        'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
 }
 
@@ -169,10 +162,9 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.facebook.FacebookAppOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
-    'rest_framework_social_oauth2.backends.DjangoOAuth2',
     'social_core.backends.twitter.TwitterOAuth',
 
-    'social.backends.google.GoogleOAuth2',
+    'social_core.backends.google.GoogleOAuth2',
     
     'django.contrib.auth.backends.ModelBackend',
 )
@@ -199,12 +191,6 @@ REST_AUTH_REGISTER_SERIALIZERS = (
     "authors.apps.authentication.serializers.RegistrationSerializer",
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-  
-    'social_django.context_processors.backends',
-    'social_django.context_processors.login_redirect',
-)
-
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
@@ -220,3 +206,4 @@ SOCIAL_AUTH_PIPELINE = (
 
 SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
 SOCIAL_AUTH_USER_FIELDS = ['email', 'username']
+SOCIAL_AUTH_URL_NAMESPACE = 'social'

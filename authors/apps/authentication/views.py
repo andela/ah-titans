@@ -1,25 +1,27 @@
+import jwt
+from datetime import datetime, timedelta
+from requests.exceptions import HTTPError
+
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import User
 from rest_framework.decorators import api_view, permission_classes
+
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.http.response import HttpResponse
-from datetime import datetime, timedelta
-from social_core.backends.utils import load_backends
-from .verification import SendEmail, account_activation_token
-from social_django.utils import psa
-import jwt
-from requests.exceptions import HTTPError
 from django.conf import settings
 
+from social_django.utils import load_backend, load_strategy
+from social_core.exceptions import MissingBackend
 from .renderers import UserJSONRenderer
+from .verification import SendEmail, account_activation_token
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer, SocialSerializer
 )
+from .models import User
 
 
 class RegistrationAPIView(APIView):
@@ -126,26 +128,31 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(message, status=status.HTTP_403_FORBIDDEN)
 
 
-@api_view(http_method_names=['POST'])
-@permission_classes([AllowAny])
-@psa('social:complete')
-def exchange_token(request, backend):
-    #access token from front-end used to get user information
-    #and a new user created.If user already exists then token 
-    #is given to the user.
-    serializer = SocialSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        try:
-            nfe = settings.NON_FIELD_ERRORS_KEY
-        except AttributeError:
-            nfe = 'non_field_errors'
+
+class ExchangeToken(CreateAPIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = SocialSerializer
+
+    def create(self, request, backend):
+        serializer = SocialSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        strategy = load_strategy(request)
 
         try:
+            backend = load_backend(strategy=strategy, name=backend, redirect_uri=None)
+        except MissingBackend  as e:
+            return Response(
+                {'errors': {
+                    'token': 'Invalid token',
+                    'detail': str(e),
+                }},
+                status=status.HTTP_404_NOT_FOUND)
+        try:
             token = serializer.data.get("access_token")
-         
-            user = request.backend.do_auth(serializer.validated_data['access_token'])
+            user = backend.do_auth(token)
         except HTTPError as e:
-          
             return Response(
                 {'errors': {
                     'token': 'Invalid token',
@@ -153,7 +160,6 @@ def exchange_token(request, backend):
                 }},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         if user:
             if user.is_active:
                 dt = datetime.now() + timedelta(days=30)
@@ -168,14 +174,12 @@ def exchange_token(request, backend):
             else:
               
                 return Response(
-                    {'errors': {nfe: 'This user account is inactive'}},
+                    {'errors': {"user": 'This user account is inactive'}},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             return Response(
-                {'errors': {nfe: "Authentication Failed"}},
+                {'errors': {"user": "Authentication Failed"}},
                 status=status.HTTP_400_BAD_REQUEST,
 
             )
-
-
