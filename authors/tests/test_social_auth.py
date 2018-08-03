@@ -24,3 +24,33 @@ class Testsocial(ViewTestCase, APITestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_invalid_token(self):
+        """
+        Test for an invalid token
+        """
+        access_token = "d8s9ns8dnt98fnsy98dy"
+        response = self.client.post('/api/users/auth/facebook',
+            data ={'access_token':access_token})
+
+        data = response.data.get('errors')
+        
+        self.assertIn('Invalid token', data["token"])
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_no_token(self):
+        """
+        Test for an empty token
+        """
+        access_token = ""
+        response = self.client.post('/api/users/auth/facebook',
+            data ={'access_token':access_token})
+
+        data = response.data.get('errors')
+        self.assertIn("This field may not be blank.", data['access_token'])
+
+        self.assertEqual(response.status_code, 400)
+
+        
+
+
