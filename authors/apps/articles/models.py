@@ -3,6 +3,7 @@ Module contains Models for article related tables
 """
 from authors.apps.core.models import TimestampModel
 from django.db import models
+from mptt.models import MPTTModel, TreeForeignKey
 from django.db.models.signals import pre_save
 from django.utils.text import slugify
 from authors.apps.profiles.models import Profile
@@ -24,6 +25,18 @@ class Article(TimestampModel):
 
     def __str__(self):
         return self.title
+
+class Comment(MPTTModel,TimestampModel):
+    body = models.TextField()
+    parent = TreeForeignKey('self',related_name='reply_set',null=True ,on_delete=models.CASCADE)
+
+    article = models.ForeignKey(
+        'articles.Article', related_name='comments', on_delete=models.CASCADE
+    )
+
+    author = models.ForeignKey(
+        'profiles.Profile', related_name='comments', on_delete=models.CASCADE
+    )
 
 
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
