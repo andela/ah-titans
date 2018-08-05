@@ -51,6 +51,18 @@ class Testsocial(ViewTestCase, APITestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_bad_json(self):
+        """
+        Test for bad json format
+        """
+        access_token = None
+        response = self.client.post('/api/users/auth/facebook',
+            data ={'access_token':access_token})
+
+
+        self.assertEqual(response.status_code, 400)
+
+
         
 
 
