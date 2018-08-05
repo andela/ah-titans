@@ -1,8 +1,48 @@
 from rest_framework import serializers
-from .models import Article
+from .models import Article, Comment
 from authors.apps.profiles.serializers import ProfileSerializer
 
 import re
+class RecursiveSerializer(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+        author = ProfileSerializer(required=False)
+        created_at = serializers.DateTimeField(read_only=True)
+        updated_at = serializers.DateTimeField(read_only=True)
+        reply_set = RecursiveSerializer(many=True, read_only=True)
+
+        class Meta:
+            model = Comment
+            fields = (
+                'id',
+                'author',
+                'body',
+                'reply_set',
+                'created_at',
+                'updated_at',
+            )
+
+        def create(self, validated_data):
+            article = self.context['article']
+            author = self.context['author']
+            parent = self.context['parent']
+            return Comment.objects.create(
+                author=author, article=article,parent=parent, **validated_data
+            )
+        def validate(self, data):
+        # The `validate` method is used to validate the title, description and body
+        # provided by the user during creating or updating an article
+            body = data.get('body')
+
+            # validate the rate is not a string but an integer or an empty value
+            if body is None:
+                raise serializers.ValidationError(
+                    """This space cannot be blank."""
+                )
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -19,10 +59,11 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = ProfileSerializer(read_only=True)
     rating = serializers.IntegerField(required=False)
     raters = serializers.IntegerField(required=False)
+    comments = CommentSerializer(read_only=True, many=True)
 
     class Meta:
         model = Article
-        fields = ['title', 'slug', 'body',
+        fields = ['title', 'slug', 'body','comments',
                   'description', 'image_url', 'created_at', 'updated_at', 'author', 'rating', 'raters']
 
     def create(self, validated_data):
