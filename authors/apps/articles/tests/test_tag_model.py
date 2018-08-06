@@ -1,5 +1,4 @@
 from django.test import TestCase
-from rest_framework import status
 
 from authors.apps.articles.models import Tag
 
@@ -25,3 +24,7 @@ class ModelTestCase(TestCase):
             tag = ["Django-rest", "Django-taggit"]
         )
         self.assertIn("Django-rest", str(response))
+        response = models.Tag.objects.create(
+            tag=self.tagList
+        )
+        self.assertIn(list(response), ["Django-rest", "Django-taggit"])
