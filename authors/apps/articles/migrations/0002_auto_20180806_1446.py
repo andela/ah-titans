@@ -18,11 +18,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='article',
-            name='author',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AddField(
-            model_name='article',
             name='dislikes',
             field=models.ManyToManyField(blank=True, related_name='dislikes', to=settings.AUTH_USER_MODEL),
         ),
