@@ -35,16 +35,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'corsheaders',
     'django_extensions',
     'rest_framework',
     'social_django',
-
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
-
     'authors.apps.articles',
 ]
 
@@ -176,16 +173,12 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, name, email'
 }
 
-
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email','username']
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("GoogleKey","none")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET  = os.environ.get("GoogleSecret","none")
 
-
 SOCIAL_AUTH_TWITTER_KEY = os.environ.get("TwitterKey","none")
 SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("TwitterSecret","none")
-
-
 
 REST_AUTH_REGISTER_SERIALIZERS = (
     "authors.apps.authentication.serializers.RegistrationSerializer",
@@ -211,7 +204,6 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 # Configure Django App for Heroku.
 import django_heroku
 django_heroku.settings(locals())
-
 import dj_database_url
 
 db_from_env = dj_database_url.config(conn_max_age=500)

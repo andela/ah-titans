@@ -10,4 +10,7 @@ urlpatterns = [
     path('users/login/', LoginAPIView.as_view()),
     path('activate/<uidb64>/<token>/', Activate.as_view(), name="activate"),
     path('users/auth/<backend>', ExchangeToken.as_view())
+
 ]
+
+
