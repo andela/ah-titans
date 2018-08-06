@@ -1,8 +1,9 @@
-from rest_framework import serializers
-from .models import Article
-from authors.apps.profiles.serializers import ProfileSerializer
-
 import re
+
+from authors.apps.profiles.serializers import ProfileSerializer
+from rest_framework import serializers
+
+from .models import Article
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -19,11 +20,14 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = ProfileSerializer(read_only=True)
     rating = serializers.IntegerField(required=False)
     raters = serializers.IntegerField(required=False)
+    likes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    dislikes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Article
         fields = ['title', 'slug', 'body',
-                  'description', 'image_url', 'created_at', 'updated_at', 'author', 'rating', 'raters']
+                  'description', 'image_url', 'created_at', 'updated_at',
+                  'author', 'rating', 'raters', 'likes', 'dislikes']
 
     def create(self, validated_data):
         return Article.objects.create(**validated_data)
