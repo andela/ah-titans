@@ -99,4 +99,5 @@ class RatingSerializer(serializers.ModelSerializer):
                 """Rate must be a value between 1 and 5"""
             )
 
+
         return {"rating": rate}
