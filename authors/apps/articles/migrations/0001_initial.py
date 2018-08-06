@@ -11,7 +11,10 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+<<<<<<< HEAD
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+=======
+>>>>>>> [Chore #159053967] Run migrations
         ('profiles', '0001_initial'),
     ]
 
@@ -27,9 +30,19 @@ class Migration(migrations.Migration):
                 ('body', models.TextField()),
                 ('description', models.TextField()),
                 ('image_url', models.URLField(blank=True, null=True)),
+<<<<<<< HEAD
                 ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile')),
                 ('dislikes', models.ManyToManyField(blank=True, related_name='dislikes', to=settings.AUTH_USER_MODEL)),
                 ('likes', models.ManyToManyField(blank=True, related_name='likes', to=settings.AUTH_USER_MODEL)),
+=======
+<<<<<<< HEAD
+=======
+                ('rating', models.IntegerField(null=True)),
+                ('total_rating', models.IntegerField(null=True)),
+                ('raters', models.IntegerField(null=True)),
+                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile')),
+>>>>>>> [Chore #159053967] Run migrations
+>>>>>>> [Chore #159053967] Run migrations
             ],
             options={
                 'ordering': ['-created_at', '-updated_at'],
