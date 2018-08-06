@@ -1,7 +1,7 @@
 from .models import Article, Comment
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
-from .serializers import ArticleSerializer, RatingSerializer,CommentSerializer
+from .serializers import ArticleSerializer, CommentSerializer, RatingSerializer
 from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer
 from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets,generics

@@ -33,16 +33,16 @@ class CommentSerializer(serializers.ModelSerializer):
             return Comment.objects.create(
                 author=author, article=article,parent=parent, **validated_data
             )
-        def validate(self, data):
-        # The `validate` method is used to validate the title, description and body
-        # provided by the user during creating or updating an article
-            body = data.get('body')
+        # def validate(self, data):
+        # # The `validate` method is used to validate the title, description and body
+        # # provided by the user during creating or updating an article
+        #     body = data.get('body')
 
-            # validate the rate is not a string but an integer or an empty value
-            if body is None:
-                raise serializers.ValidationError(
-                    """This space cannot be blank."""
-                )
+        #     # validate the rate is not a string but an integer or an empty value
+        #     if body is None:
+        #         raise serializers.ValidationError(
+        #             """This space cannot be blank."""
+        #         )
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -99,7 +99,7 @@ class RatingSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(initial=0, allow_null=True)
     total_rating = serializers.IntegerField(initial=0, allow_null=True)
     raters = serializers.IntegerField(initial=0, allow_null=True)
-
+   
     class Meta:
         model = Article
         fields = ['rating', 'total_rating', 'raters']
