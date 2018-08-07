@@ -1,12 +1,12 @@
-from .models import Article, Ratings
+from django.db.models import Avg
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
-from .serializers import ArticleSerializer, RatingSerializer
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer
-from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets
 from rest_framework.views import APIView
-from django.db.models import Avg
+from rest_framework.response import Response
+from .models import Article, Ratings
+from .serializers import ArticleSerializer, RatingSerializer
+from .renderers import ArticleJSONRenderer, RatingJSONRenderer
 
 
 class ArticleViewSet(mixins.CreateModelMixin,
