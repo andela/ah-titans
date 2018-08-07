@@ -24,7 +24,17 @@ class ModelTestCase(TestCase):
             tag = ["Django-rest", "Django-taggit"]
         )
         self.assertIn("Django-rest", str(response))
-        response = models.Tag.objects.create(
+        response = Tag.objects.create(
             tag=self.tagList
         )
-        self.assertIn(list(response), ["Django-rest", "Django-taggit"])
+        self.assertTrue(isinstance(response, Tag))
+
+    def test_model_returns_readable_representation(self):
+        """
+        Test a readable string is returned for the model instance.
+        """
+
+        response = Tag.objects.create(
+            tag = ["Django-rest", "Django-taggit"]
+        )
+        self.assertIn("Django-rest", str(response))
