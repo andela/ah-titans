@@ -227,7 +227,7 @@ class ViewTestCase(TestCase):
 
     def test_rating_more_than_five_times(self):
         """Test that a user cannot rate an article for more than 5 times"""
-        
+
         token = self.login_verified_user(self.test_user2)
         self.create_article(token, self.article)
 
@@ -239,7 +239,7 @@ class ViewTestCase(TestCase):
         self.rating(token)
         response = self.rating(token)
 
-        self.assertIn("You are not allowed to rate this article anymore.",
+        self.assertIn("You are not allowed to rate this article more than 5 times.",
                       response.content.decode())
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
     

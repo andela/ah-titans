@@ -139,7 +139,7 @@ class RateAPIView(APIView):
                 }, status=status.HTTP_201_CREATED)
 
         if ratings.counter >= 5: 
-            return Response({"message":"You are not allowed to rate this article anymore."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"message":"You are not allowed to rate this article more than 5 times."}, status=status.HTTP_403_FORBIDDEN)
         ratings.counter += 1
         ratings.stars = rating
         ratings.save()
