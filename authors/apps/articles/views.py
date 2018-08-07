@@ -1,5 +1,5 @@
 from django.db.models import Avg
-from .models import Article
+from .models import Article, Ratings
 from django.db.models import Count
 from rest_framework import mixins, status, viewsets,generics
 from rest_framework.exceptions import NotFound, PermissionDenied
