@@ -1,29 +1,15 @@
-
 from django.db.models import Avg
+from .models import Article
+from django.db.models import Count
 from rest_framework import mixins, status, viewsets,generics
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-from rest_framework.exceptions import NotFound, PermissionDenied
-
-from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
-from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets, generics
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 from .models import Article, Ratings, Comment, Tag
-from .serializers import ArticleSerializer, RatingSerializer
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer
-
-
-
-class LargeResultsSetPagination(PageNumberPagination):
-    """
-    Set pagination results settings
-    """
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 10
+from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
+from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer
 
 
 
@@ -44,7 +30,6 @@ class ArticleViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
     serializer_class = ArticleSerializer
-    pagination_class = LargeResultsSetPagination
 
     def create(self, request):
         """
@@ -61,17 +46,12 @@ class ArticleViewSet(mixins.CreateModelMixin,
         """
         Overrides the list method to get all articles
         """
-        queryset = Article.objects.all()
-        serializer_context = {'request': request}
-        page = self.paginate_queryset(queryset)
+        queryset = Article.objects.annotate(
+            average_rating = Avg("rating__stars")
+            ).all()
         serializer = self.serializer_class(
-            page,
-            context=serializer_context,
-            many=True
-        )
-        output = self.get_paginated_response(serializer.data)
-        return output
-
+           queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, slug):
         """
@@ -180,6 +160,47 @@ class RateAPIView(APIView):
         return Response({"avg":avg}, status=status.HTTP_201_CREATED)
 
 
+
+class FavoriteAPIView(APIView):
+    lookup_field = 'slug'
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    renderer_classes = (FavoriteJSONRenderer,)
+    serializer_class = ArticleSerializer
+    queryset = Article.objects.all()
+
+    def post(self, request, slug):
+        """
+        Method that favorites articles.
+        """
+        try:
+            article = Article.objects.get(slug=slug)
+        except Article.DoesNotExist:
+            raise NotFound("An article with this slug does not exist")
+
+        request.user.profile.favorite(article)
+
+        serializer = self.serializer_class(
+            article
+        )
+        return Response(serializer.data,  status=status.HTTP_201_CREATED)
+
+    def delete(self, request, slug):
+        """
+        Method that favorites articles.
+        """
+        try:
+            article = Article.objects.get(slug=slug)
+        except Article.DoesNotExist:
+            raise NotFound("An article with this slug does not exist")
+
+        request.user.profile.unfavorite(article)
+
+        serializer = self.serializer_class(
+            article
+        )
+
+        
+        return Response(serializer.data,  status=status.HTTP_200_OK)
 class CommentsListCreateAPIView(generics.ListCreateAPIView):
     lookup_field = 'article__slug'
     lookup_url_kwarg = 'article_slug'
