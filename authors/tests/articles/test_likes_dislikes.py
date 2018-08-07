@@ -217,3 +217,19 @@ class ViewTestCase(TestCase):
         response = self.dislike_article(token, 'how-to-train-your-dragon')
         self.assertNotEqual(json.loads(response.content).get('articles').get('likes'),
                             json.loads(response.content).get('articles').get('dislikes'))
+
+    def test_verified_user_cannot_like_unexisting_article(self):
+        """
+        Test verified user cannot like unexisting article
+        """
+        token = self.login_verified_user(self.testUser1)
+        response = self.like_article(token, 'unexisting-article')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_verified_user_cannot_dislike_unexisting_article(self):
+        """
+        Test verified user cannot dislike unexisting article
+        """
+        token = self.login_verified_user(self.testUser1)
+        response = self.dislike_article(token, 'unexisting-article')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
