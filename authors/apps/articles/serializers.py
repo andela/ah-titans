@@ -8,7 +8,6 @@ class RecursiveSerializer(serializers.Serializer):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
-
 class CommentSerializer(serializers.ModelSerializer):
         author = ProfileSerializer(required=False)
         created_at = serializers.DateTimeField(read_only=True)
@@ -29,22 +28,11 @@ class CommentSerializer(serializers.ModelSerializer):
         def create(self, validated_data):
             article = self.context['article']
             author = self.context['author']
-            parent = self.context['parent']
+            #parent = self.context['parent']
             return Comment.objects.create(
-                author=author, article=article,parent=parent, **validated_data
+                author=author, article=article, **validated_data
             )
-        # def validate(self, data):
-        # # The `validate` method is used to validate the title, description and body
-        # # provided by the user during creating or updating an article
-        #     body = data.get('body')
-
-        #     # validate the rate is not a string but an integer or an empty value
-        #     if body is None:
-        #         raise serializers.ValidationError(
-        #             """This space cannot be blank."""
-        #         )
-
-
+  
 class ArticleSerializer(serializers.ModelSerializer):
     """
     Defines the article serializer

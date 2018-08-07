@@ -169,7 +169,6 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     
-
     def destroy(self, request, article_slug=None, comment_pk=None):
         try:
             comment = Comment.objects.get(pk=comment_pk,)
@@ -180,7 +179,12 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
 
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 
-
+    # def retrieve(self, request, article_slug=None, comment_pk=None):
+    #     comment = Comment.objects.get(pk=comment_pk)
+    #     print(comment)
+    #     serializer = self.serializer_class(comment)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
     def create(self, request,  article_slug=None, comment_pk=None):
         
         data = request.data.get('comment',None)
