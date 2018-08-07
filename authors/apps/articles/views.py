@@ -159,8 +159,6 @@ class RateAPIView(APIView):
         avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
         return Response({"avg":avg}, status=status.HTTP_201_CREATED)
 
-
-
 class FavoriteAPIView(APIView):
     lookup_field = 'slug'
     permission_classes = (IsAuthenticatedOrReadOnly,)
