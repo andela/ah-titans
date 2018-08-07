@@ -35,9 +35,7 @@ class RatingJSONRenderer(JSONRenderer):
         })
 
 class CommentJSONRenderer(JSONRenderer):
-    charset = 'utf-8'
-
-    def render(self, data, media_type=None, renderer_context=None):
+        charset = 'utf-8'
         """
         Render the articles in a structured manner for the end user.
         """
@@ -52,3 +50,16 @@ class CommentJSONRenderer(JSONRenderer):
         return json.dumps({
                 'comment': 'No article found.'
             })         
+
+class FavoriteJSONRenderer(JSONRenderer):
+    charset = 'utf-8'
+    """
+        Render the favorited articles in a structured manner for the user.
+    """
+
+    def render(self, data, media_type=None, renderer_context=None):
+        
+        return json.dumps({
+            'favorites':data
+        })
+        
