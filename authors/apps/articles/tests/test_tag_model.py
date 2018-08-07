@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework import status
 
 from authors.apps.authentication.models import User
-from authors.apps.articles import models
+from authors.apps.articles.models import Article, Tag
 
 class CreateArticle():
     def __init__(self):
@@ -41,7 +41,17 @@ class ModelTestCase(TestCase):
     def test_model_can_create_a_taglist(self):
         """Test the tag model can create ataglist"""
 
-        response = models.Tag.objects.create(
-            tag=self.tagList
+        response = Tag.objects.create(
+            tag = ["Django-rest", "Django-taggit"]
         )
-        self.assertIn(list(response), ["Django-rest", "Django-taggit"])
+        self.assertTrue(isinstance(response, Tag))
+
+    def test_model_returns_readable_representation(self):
+        """
+        Test a readable string is returned for the model instance.
+        """
+
+        response = Tag.objects.create(
+            tag = ["Django-rest", "Django-taggit"]
+        )
+        self.assertIn("Django-rest", str(response))
