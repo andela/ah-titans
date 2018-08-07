@@ -117,3 +117,45 @@ class ViewTestCase(TestCase):
         response = self.client.delete('/api/profiles/Jacob/follow/',
                                       HTTP_AUTHORIZATION='Token ' + token, )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_followers(self):
+        """
+        Test user can retrieve a list of their followers
+        """
+        token = self.login_verified_user(self.testUser1)
+        token2 = self.login_verified_user(self.testUser2)
+        # test no followers
+        response = self.client.get('/api/followers/',
+                                   HTTP_AUTHORIZATION='Token ' + token)
+        self.assertIn('You have 0 followers.', response.content.decode())
+
+        # add one follower
+        response = self.client.post('/api/profiles/Jane/follow/',
+                                    HTTP_AUTHORIZATION='Token ' + token)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # test one follower can be retrieved for user
+        response = self.client.get('/api/followers/',
+                                   HTTP_AUTHORIZATION='Token ' + token2)
+        self.assertIn('Jacob', response.content.decode())
+
+    def test_retrieve_following(self):
+        """
+        Test user can retrieve a list of users they are following
+        """
+        token = self.login_verified_user(self.testUser1)
+        token2 = self.login_verified_user(self.testUser2)
+        # test no followed users
+        response = self.client.get('/api/following/',
+                                   HTTP_AUTHORIZATION='Token ' + token)
+        self.assertIn('You are following 0 users.', response.content.decode())
+
+        # add one following
+        response = self.client.post('/api/profiles/Jane/follow/',
+                                    HTTP_AUTHORIZATION='Token ' + token)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # test one follower can be retrieved for user
+        response = self.client.get('/api/following/',
+                                   HTTP_AUTHORIZATION='Token ' + token)
+        self.assertIn('Jane', response.content.decode())
