@@ -222,7 +222,6 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(message, status=status.HTTP_403_FORBIDDEN)
 
 
-
 class ExchangeToken(CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -235,8 +234,9 @@ class ExchangeToken(CreateAPIView):
         strategy = load_strategy(request)
 
         try:
-            backend = load_backend(strategy=strategy, name=backend, redirect_uri=None)
-        except MissingBackend  as e:
+            backend = load_backend(
+                strategy=strategy, name=backend, redirect_uri=None)
+        except MissingBackend as e:
             return Response(
                 {'errors': {
                     'token': 'Invalid token',
@@ -260,13 +260,12 @@ class ExchangeToken(CreateAPIView):
                 token = jwt.encode({
                     'id': user.pk,
                     'exp': int(dt.strftime('%s'))
-                    }, settings.SECRET_KEY, algorithm='HS256')
-
+                }, settings.SECRET_KEY, algorithm='HS256')
 
                 token = token.decode('utf-8')
                 return Response({'token': token})
             else:
-              
+
                 return Response(
                     {'errors': {"user": 'This user account is inactive'}},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -277,6 +276,3 @@ class ExchangeToken(CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
 
             )
-
-
-
