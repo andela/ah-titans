@@ -16,6 +16,14 @@ class Profile(models.Model):
     interests = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    favorites = models.ManyToManyField('articles.Article', symmetrical=False, related_name='users_fav_articles')
+
+
+    def favorite(self, article):
+        self.favorites.add(article)
+
+    def unfavorite(self, article):
+        self.favorites.remove(article)
 
     follows = models.ManyToManyField(
         'self',
