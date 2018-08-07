@@ -1,4 +1,4 @@
-from .models import Article
+from .models import Article, Ratings
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
 from .serializers import ArticleSerializer, RatingSerializer
@@ -6,6 +6,7 @@ from .renderers import ArticleJSONRenderer, RatingJSONRenderer
 from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets
 from rest_framework.views import APIView
+from django.db.models import Avg
 
 
 class ArticleViewSet(mixins.CreateModelMixin,
@@ -19,7 +20,9 @@ class ArticleViewSet(mixins.CreateModelMixin,
     `.serializer_class` attributes.
     """
     lookup_field = 'slug'
-    queryset = Article.objects.all()
+    queryset = Article.objects.annotate(
+        average_rating = Avg("rating__stars")
+    )
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
     serializer_class = ArticleSerializer
@@ -39,9 +42,11 @@ class ArticleViewSet(mixins.CreateModelMixin,
         """
         Overrides the list method to get all articles
         """
-        queryset = Article.objects.all()
+        queryset = Article.objects.annotate(
+            average_rating = Avg("rating__stars")
+            ).all()
         serializer = self.serializer_class(
-            queryset, many=True)
+           queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, slug):
@@ -116,14 +121,27 @@ class RateAPIView(APIView):
         """
         Method that posts users article ratings
         """
+        rating = request.data.get("rate", {})
+        serializer = self.serializer_class(data=rating)
+        serializer.is_valid(raise_exception=True)
+        rating = serializer.data.get('rating')
         try:
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
+        ratings = Ratings.objects.filter(rater=request.user.profile, article=article).first()
+        if not ratings:
+            ratings = Ratings(article=article, rater=request.user.profile, stars=rating)
+            ratings.save()
+            avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+            return Response({
+                "avg":avg
+                }, status=status.HTTP_201_CREATED)
 
-        rate = request.data.get('rate', {})
-        serializer = self.serializer_class(article, data=rate, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if ratings.counter > 5: 
+            return Response({"message":"You are not allowed to rate this article anymore."}, status=status.HTTP_403_FORBIDDEN)
+        ratings.counter += 1
+        ratings.stars = rating
+        ratings.save()
+        avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+        return Response({"avg":avg}, status=status.HTTP_201_CREATED)
