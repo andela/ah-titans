@@ -3,18 +3,15 @@ from django.db.models import Avg
 from rest_framework import mixins, status, viewsets,generics
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework.response import Response
-from .models import Article, Tag
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.exceptions import NotFound, PermissionDenied
-from .serializers import ArticleSerializer, RatingSerializer, TagSerializer
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer
+
+from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
 from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Article, Ratings,Comment
-from .serializers import ArticleSerializer, CommentSerializer, RatingSerializer
+from .models import Article, Ratings, Comment, Tag
 from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer
 
 
