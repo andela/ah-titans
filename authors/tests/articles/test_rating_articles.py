@@ -135,6 +135,21 @@ class ViewTestCase(TestCase):
             format='json'
         )
 
+    def rating(self, token, article):
+        """
+        Method for rating an aricle
+        """
+
+        token = self.login_verified_user(self.test_user)
+        self.create_article(token, self.article)
+
+        self.client.post(
+        '/api/articles/lolitas/rate/',
+        self.rate,
+        HTTP_AUTHORIZATION='Token ' + token,
+        format='json'
+    )
+
     def test_rating_inexisting_article(self):
         """Test user rating an inexisting article"""
 
@@ -215,3 +230,16 @@ class ViewTestCase(TestCase):
         )
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+    def test_rating_more_than_five_times(self):
+        token = self.login_verified_user(self.test_user)
+        self.rating(token, self.article)
+        self.rating(token, self.article)
+        self.rating(token, self.article)
+        self.rating(token, self.article)
+        self.rating(token, self.article)
+        self.rating(token, self.article)
+        self.rating(token, self.article)
+        response = self.rating(token, self.article)
+
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
