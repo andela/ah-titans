@@ -39,9 +39,12 @@ class ViewTestCase(TestCase):
                 "title": "getters",
                 "body": "we are the people with a mission",
                 "description": "Let not failure define you.",
-            }       
+            }
 
-        """Initialize client"""
+        }
+
+       
+
         self.factory = APIRequestFactory()
         self.client = APIClient()
 
