@@ -52,26 +52,14 @@ class ArticleSerializer(serializers.ModelSerializer):
     dislikes_count = serializers.SerializerMethodField()
     average_rating = serializers.FloatField(required=False, read_only=True)
     comments = CommentSerializer(read_only=True, many=True)
+    tagList = TagRelatedField(many=True, required=False, source='tags')
 
     class Meta:
         model = Article
 
         fields = ['title', 'slug', 'body','comments',
                   'description', 'image_url', 'created_at', 'updated_at', 'author', 'average_rating','likes', 'dislikes',
-                  'likes_count', 'dislikes_count']
-    rating = serializers.IntegerField(required=False)
-    raters = serializers.IntegerField(required=False)
-    tagList = TagRelatedField(many=True, required=False, source='tags')
-
-    class Meta:
-        model = Article
-        fields = ['title', 'slug', 'body',
-                  'description', 'image_url', 'created_at', 'updated_at',
-                  'author', 'average_rating', 'likes', 'dislikes',
-                  'likes_count', 'dislikes_count', 'rating', 
-                  'raters', 'tagList']
-
-
+                  'likes_count', 'dislikes_count', 'tagList']
 
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
