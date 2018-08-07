@@ -274,7 +274,4 @@ class ViewTestCase(TestCase):
         )
         self.assertIn('An article with this slug does not exist', response.data['detail'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-
-
        
