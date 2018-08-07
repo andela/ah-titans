@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 
 from .views import ArticleViewSet, RateAPIView, CommentsListCreateAPIView, CommentsDestroyGetCreateAPIView, DislikesAPIView, LikesAPIView, TagListAPIView
 
-
 app_name = "articles"
 
 router = DefaultRouter()
