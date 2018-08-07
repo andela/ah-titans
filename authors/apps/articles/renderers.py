@@ -31,7 +31,7 @@ class RatingJSONRenderer(JSONRenderer):
         Render the ratings in a structured manner for the end user.
         """
         return json.dumps({
-            'rate': data
+            'rate': data,
         })
 
 class CommentJSONRenderer(JSONRenderer):
