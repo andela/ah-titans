@@ -1,11 +1,9 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-<<<<<<< HEAD
-
-from .views import ArticleViewSet, RateAPIView, CommentsListCreateAPIView, CommentsDestroyGetCreateAPIView, DislikesAPIView, LikesAPIView, TagListAPIView
-=======
-from .views import ArticleViewSet, RateAPIView, FavoriteAPIView
->>>>>>> [Chore #59053966]Added urls and fixed bugs
+from .views import ArticleViewSet, RateAPIView,
+         CommentsListCreateAPIView, CommentsDestroyGetCreateAPIView,
+          DislikesAPIView, LikesAPIView, TagListAPIView,
+           FavoriteAPIView
 
 app_name = "articles"
 
