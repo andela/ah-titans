@@ -22,12 +22,15 @@ class ArticleSerializer(serializers.ModelSerializer):
     raters = serializers.IntegerField(required=False)
     likes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     dislikes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
         fields = ['title', 'slug', 'body',
                   'description', 'image_url', 'created_at', 'updated_at',
-                  'author', 'rating', 'raters', 'likes', 'dislikes']
+                  'author', 'rating', 'raters', 'likes', 'dislikes',
+                  'likes_count', 'dislikes_count']
 
     def create(self, validated_data):
         return Article.objects.create(**validated_data)
@@ -53,6 +56,12 @@ class ArticleSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_dislikes_count(self, obj):
+        return obj.dislikes.count()
 
 
 class RatingSerializer(serializers.ModelSerializer):

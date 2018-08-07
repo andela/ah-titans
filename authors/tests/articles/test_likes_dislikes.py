@@ -141,6 +141,10 @@ class ViewTestCase(TestCase):
         # Assert that user id in likes field after liking article
         self.assertEqual(jwt.decode(token, settings.SECRET_KEY, algorithm='HS256')['id'],
                          json.loads(response.content).get('articles').get('likes')[0])
+        # Assert that likes count is one
+        self.assertEqual(json.loads(response.content).get('articles').get('likes_count'), 1)
+        # Assert that dislikes count is zero
+        self.assertEqual(json.loads(response.content).get('articles').get('dislikes_count'), 0)
 
     def test_verified_user_can_dislike_article(self):
         """
@@ -155,6 +159,10 @@ class ViewTestCase(TestCase):
         # Assert that user id in dislikes field after disliking article
         self.assertEqual(jwt.decode(token, settings.SECRET_KEY, algorithm='HS256')['id'],
                          json.loads(response.content).get('articles').get('dislikes')[0])
+        # Assert that dislikes count is one
+        self.assertEqual(json.loads(response.content).get('articles').get('dislikes_count'), 1)
+        # Assert that likes count is zero
+        self.assertEqual(json.loads(response.content).get('articles').get('likes_count'), 0)
 
     def test_unverified_user_cannot_like_article(self):
         """
