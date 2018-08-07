@@ -28,9 +28,9 @@ class CommentSerializer(serializers.ModelSerializer):
         def create(self, validated_data):
             article = self.context['article']
             author = self.context['author']
-            #parent = self.context['parent']
+            parent = self.context.get('parent', None)
             return Comment.objects.create(
-                author=author, article=article, **validated_data
+                author=author, article=article,parent=parent, **validated_data
             )
   
 class ArticleSerializer(serializers.ModelSerializer):
