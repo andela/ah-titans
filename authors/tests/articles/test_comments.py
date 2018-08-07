@@ -240,4 +240,14 @@ class ViewTestCase(TestCase):
         self.assertIn("Authentication credentials were not provided.",
                       response.content.decode())
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_cannot_delete_inexisting_comment(self):
+        """Test user cannot  delete inexisting comment """
+        token = self.login_verified_user(self.test_user)
+        self.create_article(token, self.article)
+        self.create_comment(token, 'tests', self.comment)
+        response = self.delete_comment(token, 'test',self.comment,'2')
+        self.assertIn("A comment with this ID does not exist.",
+                      response.content.decode())
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
