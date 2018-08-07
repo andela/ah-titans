@@ -93,7 +93,6 @@ class Reset(APIView):
             return Response({"msg": "Error"})
 
 
-
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -179,7 +178,6 @@ class PassResetAPIView(APIView):
         # Invalid serializer
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
