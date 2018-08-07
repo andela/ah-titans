@@ -93,30 +93,6 @@ class Reset(APIView):
             return Response({"msg": "Error"})
 
 
-class Reset(APIView):
-    # Gets uidb64 and token from the send_verification_email function and
-    # if valid, changes the status of user in is_verified to True and is_active
-    # to True. The user is then redirected to a html page once the verification
-    # link is clicked
-
-    permission_classes = (AllowAny, )
-
-    def get(self, request, uidb64, token):
-        try:
-            uid = force_text(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
-        if user is not None and account_activation_token.check_token(user, token):
-            user.is_reset = True
-            user.save()
-
-            encode_mail = urlsafe_base64_encode(
-                force_bytes(user.email)).decode('utf-8')
-            return Response({"token": encode_mail})
-        else:
-            return Response({"msg": "Error"})
-
 
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
@@ -204,74 +180,6 @@ class PassResetAPIView(APIView):
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
-
-class ResetPassAPIView(APIView):
-    """
-        This view class facilitates sending of reset password email
-    """
-    permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
-    serializer_class = ResetPassSerializer
-
-    def post(self, request):
-        # get user input
-        user = request.data.get('user', {})
-
-        # Notice here that we do not call `serializer.save()` like we did for
-        # the registration endpoint. This is because we don't actually have
-        # anything to save. Instead, the `validate` method on our serializer
-        # handles everything we need.
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
-
-        # If user exists
-        if not serializer.data["email"] == "False":
-            # Send email
-            SendEmail().send_reset_pass_email(user.get('email'), request)
-            return Response({"msg": "Success, reset email sent."},
-                            status=status.HTTP_200_OK)
-        return Response({"msg": "Email doesn't exist, register instead."},
-                        status=status.HTTP_404_NOT_FOUND)
-
-
-class PassResetAPIView(APIView):
-    """
-        View class that allows user to set a new password upon receiving the reset 
-        password token
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (AllowAny,)
-
-    @list_route(methods=['put'], serializer_class=PassResetSerializer)
-    def put(self, request):
-        # get user input
-        user = request.data.get('user', {})
-        serializer = PassResetSerializer(data=user)
-        # Check if serializer is valid
-        if serializer.is_valid():
-            decode_email = force_text(
-                urlsafe_base64_decode(serializer.data['reset_token']))
-            instance = User.objects.get(email=decode_email)
-
-            # If `is_reset` is false, this means that the link has already
-            # been used
-            if instance.is_reset is False:
-                return Response({
-                    "msg": "Sorry, this link has already been used."
-                }, status=status.HTTP_403_FORBIDDEN)
-
-            # Set new password
-            instance.set_password(serializer.data['new_password'])
-            instance.is_reset = False
-            instance.save()
-            return Response({
-                "msg": "Success! Password for '{}' has been changed.".format(
-                    decode_email)
-            }, status=status.HTTP_201_CREATED)
-        # Invalid serializer
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):

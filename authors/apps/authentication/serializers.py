@@ -1,22 +1,19 @@
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 from rest_framework.serializers import Serializer
 from rest_framework.validators import UniqueValidator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
-=======
+
 from rest_framework.validators import UniqueValidator
 
->>>>>>> [Feature #159053958] A user can receive a reset password email
-=======
+
 from rest_framework.serializers import Serializer
 from rest_framework.validators import UniqueValidator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
->>>>>>> [Chore #159053958] Add tests for password reset feature
 from .models import User
 from .backends import JWTAuthentication
 from authors.apps.profiles.serializers import ProfileSerializer

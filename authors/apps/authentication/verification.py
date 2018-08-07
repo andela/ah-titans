@@ -36,7 +36,6 @@ class SendEmail():
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'),
             'token': token
-<<<<<<< HEAD
         })
 
         # set mail to email content with subject, body ,sender and recepient
@@ -63,8 +62,6 @@ class SendEmail():
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8'),
             'token': token
-=======
->>>>>>> [Chore #159053958] Add tests for password reset feature
         })
 
         # set mail to email content with subject, body ,sender and recepient
