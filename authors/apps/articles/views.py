@@ -6,6 +6,13 @@ from .renderers import ArticleJSONRenderer, RatingJSONRenderer
 from rest_framework.response import Response
 from rest_framework import mixins, status, viewsets
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
+
+
+class LargeResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
 
 
 class ArticleViewSet(mixins.CreateModelMixin,
@@ -23,6 +30,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
     serializer_class = ArticleSerializer
+    pagination_class = LargeResultsSetPagination
 
     def create(self, request):
         """
@@ -40,9 +48,15 @@ class ArticleViewSet(mixins.CreateModelMixin,
         Overrides the list method to get all articles
         """
         queryset = Article.objects.all()
+        serializer_context = {'request': request}
+        page = self.paginate_queryset(queryset)
         serializer = self.serializer_class(
-            queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            page,
+            context=serializer_context,
+            many=True
+        )
+        output = self.get_paginated_response(serializer.data)
+        return output
 
     def retrieve(self, request, slug):
         """
