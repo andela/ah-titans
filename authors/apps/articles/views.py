@@ -285,10 +285,6 @@ class DislikesAPIView(APIView):
                                            partial=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-<<<<<<< HEAD
-
-=======
->>>>>>> [Fix #159053967] Fix syntax error
 
 class TagListAPIView(generics.ListAPIView):
     queryset = Tag.objects.all()
@@ -302,7 +298,3 @@ class TagListAPIView(generics.ListAPIView):
         return Response({
             'tags': serializer.data
         }, status=status.HTTP_200_OK)
-<<<<<<< HEAD
-=======
-
->>>>>>> [Fix #159053967] Fix syntax error
