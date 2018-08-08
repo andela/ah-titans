@@ -32,6 +32,13 @@ class ViewTestCase(TestCase):
                 "password": "Manu150password"
             }
         }
+        self.test_user3 = {
+            "user": {
+                "username": "manu200",
+                "email": "emmanuel33@gmail.com",
+                "password": "Manuchep23password"
+            }
+        }
 
         """Articles data for testing rate feature"""
         self.article = {
@@ -274,4 +281,42 @@ class ViewTestCase(TestCase):
         )
         self.assertIn('An article with this slug does not exist', response.data['detail'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-       
+
+    def test_favourite_count_increase(self):
+        
+        """ 
+        Test favourite count 
+        """
+        token = self.login_verified_user(self.test_user)
+        token2 = self.login_verified_user(self.test_user2)
+        token3 = self.login_verified_user(self.test_user3)
+        self.create_article(token, self.article)
+
+        response =  self.client.post(
+            '/api/articles/getters/favorite/',
+            self.article,
+            HTTP_AUTHORIZATION='Token ' + token,
+            format='json'
+        )
+        response1 =  self.client.post(
+            '/api/articles/getters/favorite/',
+            self.article,
+            HTTP_AUTHORIZATION='Token ' + token2,
+            format='json'
+        )
+
+        response2 =  self.client.post(
+            '/api/articles/getters/favorite/',
+            self.article,
+            HTTP_AUTHORIZATION='Token ' + token3,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(True, response.data['favorited'])
+        self.assertEqual(1, response.data['favoriteCount'])
+        self.assertEqual(2, response1.data['favoriteCount'])
+        self.assertEqual(3, response2.data['favoriteCount'])
+      
