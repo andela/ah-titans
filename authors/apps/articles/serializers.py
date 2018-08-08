@@ -1,9 +1,39 @@
 import re
 from rest_framework import serializers
-from .models import Article, Ratings
+from .models import Article, Comment, Ratings, Tag
+from .tag_relations import TagRelatedField
+
 from authors.apps.profiles.serializers import ProfileSerializer
 
+class RecursiveSerializer(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
 
+class CommentSerializer(serializers.ModelSerializer):
+        author = ProfileSerializer(required=False)
+        created_at = serializers.DateTimeField(read_only=True)
+        updated_at = serializers.DateTimeField(read_only=True)
+        reply_set = RecursiveSerializer(many=True, read_only=True)
+
+        class Meta:
+            model = Comment
+            fields = (
+                'id',
+                'author',
+                'body',
+                'reply_set',
+                'created_at',
+                'updated_at',
+            )
+
+        def create(self, validated_data):
+            article = self.context['article']
+            author = self.context['author']
+            parent = self.context.get('parent', None)
+            return Comment.objects.create(
+                author=author, article=article,parent=parent, **validated_data
+            )
 class ArticleSerializer(serializers.ModelSerializer):
     """
     Defines the article serializer
@@ -21,17 +51,25 @@ class ArticleSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     dislikes_count = serializers.SerializerMethodField()
     average_rating = serializers.FloatField(required=False, read_only=True)
-
+    comments = CommentSerializer(read_only=True, many=True)
+    tagList = TagRelatedField(many=True, required=False, source='tags')
 
     class Meta:
         model = Article
-        fields = ['title', 'slug', 'body',
-                  'description', 'image_url', 'created_at', 'updated_at',
-                  'author', 'average_rating', 'likes', 'dislikes',
-                  'likes_count', 'dislikes_count']
+        fields = ['title', 'slug', 'body','comments',
+                  'description', 'image_url', 'created_at',
+                  'updated_at', 'author', 'average_rating',
+                  'likes', 'dislikes', 'dislikes_count', 'likes_count','tagList']
 
     def create(self, validated_data):
-        return Article.objects.create(**validated_data)
+        tags = validated_data.pop('tags', [])
+
+        article = Article.objects.create(**validated_data)
+
+        for tag in tags:
+            article.tags.add(tag)
+
+        return article
 
     def validate(self, data):
         # The `validate` method is used to validate the title,
@@ -66,6 +104,11 @@ class RatingSerializer(serializers.Serializer):
     """
 
     rating = serializers.IntegerField(required=True)
+   
+    class Meta:
+        model = Article
+        fields = ['rating', 'total_rating', 'raters']
+
 
 
     def validate(self, data):
@@ -87,3 +130,15 @@ class RatingSerializer(serializers.Serializer):
 
 
         return {"rating": rate}
+
+class TagSerializer(serializers.ModelSerializer):
+    """
+    Defines the tag serializer
+    """
+    class Meta:
+        model = Tag
+        fields = ('tag',)
+    
+    def to_representation(self, obj):
+        return obj.tag
+    

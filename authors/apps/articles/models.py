@@ -5,6 +5,7 @@ from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampModel
 from authors.apps.profiles.models import Profile
 from django.db import models
+from mptt.models import MPTTModel, TreeForeignKey
 from django.db.models.signals import pre_save
 from django.utils.text import slugify
 
@@ -21,9 +22,24 @@ class Article(TimestampModel):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
     dislikes = models.ManyToManyField(User, related_name='dislikes', blank=True)
+    tags = models.ManyToManyField(
+        'articles.Tag', related_name='articles'
+    )
 
     def __str__(self):
         return self.title
+
+class Comment(MPTTModel,TimestampModel):
+    body = models.TextField()
+    parent = TreeForeignKey('self',related_name='reply_set',null=True ,on_delete=models.CASCADE)
+
+    article = models.ForeignKey(
+        'articles.Article', related_name='comments', on_delete=models.CASCADE
+    )
+
+    author = models.ForeignKey(
+        'profiles.Profile', related_name='comments', on_delete=models.CASCADE
+    )
 
 
 class Ratings(models.Model):
@@ -58,3 +74,13 @@ def pre_save_article_receiver(sender, instance, *args, **kwargs):
 
 # Called just before a save is made in the db
 pre_save.connect(pre_save_article_receiver, sender=Article)
+
+
+class Tag(TimestampModel):
+    """This class defines the tag model"""
+
+    tag = models.CharField(max_length=255)
+    slug = models.SlugField(db_index=True, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.tag)
