@@ -52,5 +52,4 @@ class ModelTestCase(TestCase):
         on user creation. 
         """
         response = CreateComment().create_comment()
-        self.assertIsNotNone(response.created_at)
-        
+        self.assertIsNotNone(response.created_at)        
