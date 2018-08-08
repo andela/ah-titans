@@ -62,4 +62,3 @@ class FavoriteJSONRenderer(JSONRenderer):
         return json.dumps({
             'favorites':data
         })
-        
