@@ -1,8 +1,8 @@
+import re
 from rest_framework import serializers
 from .models import Article, Comment, Ratings
 from authors.apps.profiles.serializers import ProfileSerializer
 
-import re
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
         serializer = self.parent.parent.__class__(value, context=self.context)
@@ -32,7 +32,6 @@ class CommentSerializer(serializers.ModelSerializer):
             return Comment.objects.create(
                 author=author, article=article,parent=parent, **validated_data
             )
-  
 class ArticleSerializer(serializers.ModelSerializer):
     """
     Defines the article serializer
@@ -45,13 +44,20 @@ class ArticleSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     author = ProfileSerializer(read_only=True)
+    likes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    dislikes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
     average_rating = serializers.FloatField(required=False, read_only=True)
     comments = CommentSerializer(read_only=True, many=True)
 
     class Meta:
         model = Article
+
         fields = ['title', 'slug', 'body','comments',
-                  'description', 'image_url', 'created_at', 'updated_at', 'author', 'average_rating']
+                  'description', 'image_url', 'created_at', 'updated_at', 'author', 'average_rating','likes', 'dislikes',
+                  'likes_count', 'dislikes_count']
+
 
 
     def create(self, validated_data):
@@ -76,6 +82,12 @@ class ArticleSerializer(serializers.ModelSerializer):
                 """
             )
         return data
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_dislikes_count(self, obj):
+        return obj.dislikes.count()
 
 
 class RatingSerializer(serializers.Serializer):
