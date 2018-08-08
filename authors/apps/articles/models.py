@@ -22,9 +22,6 @@ class Article(TimestampModel):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
     dislikes = models.ManyToManyField(User, related_name='dislikes', blank=True)
-    rating = models.IntegerField(null=True)
-    total_rating = models.IntegerField(null=True)
-    raters = models.IntegerField(null=True)
     tags = models.ManyToManyField(
         'articles.Tag', related_name='articles'
     )
