@@ -57,7 +57,9 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ['title', 'slug', 'body','comments',
-                  'description', 'image_url', 'created_at', 'updated_at', 'author', 'average_rating', 'likes', 'dislikes', 'tagList']
+                  'description', 'image_url', 'created_at',
+                  'updated_at', 'author', 'average_rating',
+                  'likes', 'dislikes', 'dislikes_count', 'likes_count','tagList']
 
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
