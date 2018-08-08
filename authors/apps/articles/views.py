@@ -1,18 +1,22 @@
-from .models import Article
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.exceptions import NotFound, PermissionDenied
-from .serializers import ArticleSerializer, RatingSerializer
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer
-from rest_framework.response import Response
+from django.db.models import Avg
 from rest_framework import mixins, status, viewsets
+from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
-
+from .models import Article, Ratings
+from .serializers import ArticleSerializer, RatingSerializer
+from .renderers import ArticleJSONRenderer, RatingJSONRenderer
 
 class LargeResultsSetPagination(PageNumberPagination):
+    """
+    Set pagination results settings
+    """
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 10
+
 
 
 class ArticleViewSet(mixins.CreateModelMixin,
@@ -26,7 +30,9 @@ class ArticleViewSet(mixins.CreateModelMixin,
     `.serializer_class` attributes.
     """
     lookup_field = 'slug'
-    queryset = Article.objects.all()
+    queryset = Article.objects.annotate(
+        average_rating = Avg("rating__stars")
+    )
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
     serializer_class = ArticleSerializer
@@ -57,6 +63,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
         )
         output = self.get_paginated_response(serializer.data)
         return output
+
 
     def retrieve(self, request, slug):
         """
@@ -130,14 +137,75 @@ class RateAPIView(APIView):
         """
         Method that posts users article ratings
         """
+        rating = request.data.get("rate", {})
+        serializer = self.serializer_class(data=rating)
+        serializer.is_valid(raise_exception=True)
+        rating = serializer.data.get('rating')
         try:
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
+        ratings = Ratings.objects.filter(rater=request.user.profile, article=article).first()
+        if not ratings:
+            ratings = Ratings(article=article, rater=request.user.profile, stars=rating)
+            ratings.save()
+            avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+            return Response({
+                "avg":avg
+                }, status=status.HTTP_201_CREATED)
 
-        rate = request.data.get('rate', {})
-        serializer = self.serializer_class(article, data=rate, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if ratings.counter >= 5: 
+            raise PermissionDenied("You are not allowed to rate this article more than 5 times.")
+        ratings.counter += 1
+        ratings.stars = rating
+        ratings.save()
+        avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+        return Response({"avg":avg}, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class LikesAPIView(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    renderer_classes = (ArticleJSONRenderer, )
+    serializer_class = ArticleSerializer
+
+    def put(self, request, slug):
+        serializer_context = {'request': request}
+
+        try:
+            serializer_instance = Article.objects.get(slug=slug)
+        except Article.DoesNotExist:
+            raise NotFound("An article with this slug does not exist")
+
+        if serializer_instance in Article.objects.filter(dislikes=request.user):
+            serializer_instance.dislikes.remove(request.user)
+
+        serializer_instance.likes.add(request.user)
+
+        serializer = self.serializer_class(serializer_instance, context=serializer_context,
+                                           partial=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DislikesAPIView(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    renderer_classes = (ArticleJSONRenderer, )
+    serializer_class = ArticleSerializer
+
+    def put(self, request, slug):
+        serializer_context = {'request': request}
+
+        try:
+            serializer_instance = Article.objects.get(slug=slug)
+        except Article.DoesNotExist:
+            raise NotFound("An article with this slug does not exist")
+
+        if serializer_instance in Article.objects.filter(likes=request.user):
+            serializer_instance.likes.remove(request.user)
+
+        serializer_instance.dislikes.add(request.user)
+
+        serializer = self.serializer_class(serializer_instance, context=serializer_context,
+                                           partial=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

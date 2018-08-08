@@ -24,7 +24,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', 'localhost', 'ah-titans-api.herokuapp.com']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', 'herokuapp.com']
 
 # Application definition
 
@@ -210,4 +210,3 @@ import dj_database_url
 
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
-

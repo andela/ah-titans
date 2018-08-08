@@ -1,11 +1,12 @@
 """
 Module contains Models for article related tables
 """
+from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampModel
+from authors.apps.profiles.models import Profile
 from django.db import models
 from django.db.models.signals import pre_save
 from django.utils.text import slugify
-from authors.apps.profiles.models import Profile
 
 
 class Article(TimestampModel):
@@ -18,12 +19,23 @@ class Article(TimestampModel):
     description = models.TextField()
     image_url = models.URLField(blank=True, null=True)
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    rating = models.IntegerField(null=True)
-    total_rating = models.IntegerField(null=True)
-    raters = models.IntegerField(null=True)
+    likes = models.ManyToManyField(User, related_name='likes', blank=True)
+    dislikes = models.ManyToManyField(User, related_name='dislikes', blank=True)
 
     def __str__(self):
         return self.title
+
+
+class Ratings(models.Model):
+    """
+    Defines the ratings fields for a rater
+    """
+    rater = models.ForeignKey(
+        Profile, on_delete=models.CASCADE)
+    article = models.ForeignKey(
+        Article,  on_delete=models.CASCADE, related_name="rating")
+    counter = models.IntegerField(default=0)
+    stars = models.IntegerField(null=False)
 
 
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
@@ -32,7 +44,7 @@ def pre_save_article_receiver(sender, instance, *args, **kwargs):
     A slug will always be unique
     """
     if instance.slug:
-        return
+        return instance
     slug = slugify(instance.title)
     num = 1
     unique_slug = slug
