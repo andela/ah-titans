@@ -51,5 +51,4 @@ class CommentJSONRenderer(JSONRenderer):
             })
         return json.dumps({
                 'comment': 'No article found.'
-            })
-            
+            })         
