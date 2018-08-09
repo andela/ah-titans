@@ -107,7 +107,7 @@ post_save.connect(notify_followers_new_article, sender=Article)
 
 def notify_comments_favorited_articles(sender, instance, created, **kwargs):
     notify.send(instance, recipient=User.objects.all(),
-                verb='was coomented on')
+                verb='was commented on')
 
 
 post_save.connect(notify_comments_favorited_articles, sender=Comment)
