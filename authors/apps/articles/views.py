@@ -351,7 +351,7 @@ class NotificationAPIView(generics.ListAPIView):
 class CommentNotificationAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
     # queryset = Article.objects.all()
-    user = User.objects.all().first()
+    user = User.objects.filter(email=email).first()
     serializer_class = NotificationSerializer
 
     def list(self, request):
@@ -386,7 +386,7 @@ class Notifications(APIView):
 
 
 class UnreadNotificationsList (NotificationAPIView):
-    user = User.objects.all().first()
+    user = User.objects.filter(email=email).first()
     permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):
@@ -395,7 +395,7 @@ class UnreadNotificationsList (NotificationAPIView):
 
 @login_required
 def mark_all_as_read(request):
-    user = User.objects.all().first()
+    user = User.objects.filter(email=email).first()
     request.user.notifications.mark_all_as_read()
 
     _next = request.GET.get('next')
@@ -410,7 +410,7 @@ def mark_as_read(request, slug=None):
     notification_id = slug2id(slug)
 
     notification = get_object_or_404(
-        Notification, recipient=User.objects.all().first(), id=notification_id)
+        Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
     notification.mark_as_read()
     return notification
 
@@ -420,7 +420,7 @@ def delete(request, slug=None):
     notification_id = slug2id(slug)
 
     notification = get_object_or_404(
-        Notification, recipient=User.objects.all().first(), id=notification_id)
+        Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
 
     if settings.get_config()['SOFT_DELETE']:
         notification.deleted = True
