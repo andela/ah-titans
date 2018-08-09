@@ -351,6 +351,7 @@ class NotificationAPIView(generics.ListAPIView):
 class CommentNotificationAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
     # queryset = Article.objects.all()
+    user = User.objects.all().first()
     serializer_class = NotificationSerializer
 
     def list(self, request):
@@ -360,7 +361,7 @@ class CommentNotificationAPIView(generics.ListAPIView):
             serializer = self.serializer_class(
                 data=request.user.notifications.unread(), many=True)
             serializer.is_valid()
-            SendEmail().send_verification_email(user.get('email', None), request)
+            SendEmail().send_verification_email(self.user, request)
             return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
         return Response('You have no new notifications')
 
@@ -379,9 +380,6 @@ class Notifications(APIView):
             user = None
         if user is not None and account_activation_token.check_token(user, token):
             unread_count = request.user.notifications.unread().count()
-            user.is_active = True
-            user.is_verified = True
-            user.save()
             return HttpResponse('You have %s unread messages.', unread_count)
         else:
             return HttpResponse('An errorhas occured, Please check your connection.')
@@ -442,3 +440,24 @@ def delete(request, slug=None):
         return redirect(_next)
 
     return redirect('notifications:all')
+
+
+@login_required
+def subscription_on(request):
+    # response = request.get.
+    response = "True"
+    response.save()
+    return response
+
+
+@login_required
+def subscription_off(request):
+    # response = request.get.
+    response = "False"
+    response.save()
+    return response
+
+
+// REMEMBER TO CHECK IN ALL THE FUNCTIONS ABOVE IF SUBCRIPTION IS ON OR OFF BEFORE SENDING NOTIFICATION
+// SEND A DESCRIPTIVE TEMPLATE WITH COMMENT CONTENT AND WHO MADE THE COMMENT
+// TEST AND UI
