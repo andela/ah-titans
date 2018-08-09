@@ -89,7 +89,15 @@ pre_save.connect(pre_save_article_receiver, sender=Article)
 
 
 def notify_followers_new_article(sender, instance, created, **kwargs):
-    notify.send(instance, recipient=User.objects.all(), verb='was posted')
+    """
+    Notify followers of new article posted.
+    """
+    user = User.objects.get(pk=instance.author.id)
+    rec = []
+    for follower in user.profile.follower.all():
+        rec.append(follower.user)
+    print(rec)
+    notify.send(instance, recipient=rec, verb='was posted')
 
 
 post_save.connect(notify_followers_new_article, sender=Article)
