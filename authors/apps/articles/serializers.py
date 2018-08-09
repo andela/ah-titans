@@ -55,6 +55,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
     favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')
+    
 
 
     class Meta:
@@ -71,8 +72,14 @@ class ArticleSerializer(serializers.ModelSerializer):
         return instance.users_fav_articles.count()
 
     def is_favorited(self, instance):
-        return False if self.get_favorite_count(instance) == 0 else True
-    
+        request = self.context.get('request')
+        if request is None:
+            return False
+        username = request.user.username
+        if instance.users_fav_articles.filter(user__username=username).count() == 0:
+            return False
+        return True
+            
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
 
@@ -153,4 +160,4 @@ class TagSerializer(serializers.ModelSerializer):
     
     def to_representation(self, obj):
         return obj.tag
-    
+       

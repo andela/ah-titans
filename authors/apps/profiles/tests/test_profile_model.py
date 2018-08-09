@@ -40,6 +40,7 @@ class ProfileModelTestCase(TestCase):
         """
         Test that Profile model adds a timestamp 
         on profile creation. 
+<<<<<<< HEAD
         """
         response = create_a_user()
         self.assertIsNotNone(response.profile.created_at)
@@ -54,3 +55,11 @@ class ProfileModelTestCase(TestCase):
         self.assertTrue(user1.profile.is_follower(user2))
         user2.profile.follows.remove(user1.profile)
         self.assertFalse(user1.profile.is_follower(user2))
+=======
+        """ 
+
+        response = create_a_user()
+        self.assertIsNotNone(response.profile.created_at)
+
+
+>>>>>>> [Chore #59053966] added database tests

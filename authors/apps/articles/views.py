@@ -170,6 +170,7 @@ class FavoriteAPIView(APIView):
         """
         Method that favorites articles.
         """
+        serializer_context = {'request':request}
         try:
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
@@ -178,7 +179,8 @@ class FavoriteAPIView(APIView):
         request.user.profile.favorite(article)
 
         serializer = self.serializer_class(
-            article
+            article,
+            context=serializer_context
         )
         return Response(serializer.data,  status=status.HTTP_201_CREATED)
 
@@ -186,6 +188,7 @@ class FavoriteAPIView(APIView):
         """
         Method that favorites articles.
         """
+        serializer_context = {'request':request}
         try:
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
@@ -194,10 +197,10 @@ class FavoriteAPIView(APIView):
         request.user.profile.unfavorite(article)
 
         serializer = self.serializer_class(
-            article
+            article,
+            context=serializer_context
         )
-
-        
+ 
         return Response(serializer.data,  status=status.HTTP_200_OK)
 class CommentsListCreateAPIView(generics.ListCreateAPIView):
     lookup_field = 'article__slug'

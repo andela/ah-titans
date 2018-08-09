@@ -11,6 +11,8 @@ from authors.apps.authentication.verification import SendEmail
 from authors.apps.authentication.views import Activate
 
 
+
+
 class ViewTestCase(TestCase):
     """Test suite for the api views."""
 
@@ -110,8 +112,7 @@ class ViewTestCase(TestCase):
         """
         Creates an article for testing
         """
-
-
+        
         return self.client.post(
             '/api/articles/',
             self.article,
@@ -319,4 +320,3 @@ class ViewTestCase(TestCase):
         self.assertEqual(1, response.data['favoriteCount'])
         self.assertEqual(2, response1.data['favoriteCount'])
         self.assertEqual(3, response2.data['favoriteCount'])
-      

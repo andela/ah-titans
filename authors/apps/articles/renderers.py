@@ -62,5 +62,5 @@ class FavoriteJSONRenderer(JSONRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         
         return json.dumps({
-            'favorites':data
+            'articles':data
         })
