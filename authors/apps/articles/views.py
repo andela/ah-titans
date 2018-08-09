@@ -382,7 +382,7 @@ class Notifications(APIView):
             unread_count = request.user.notifications.unread().count()
             return HttpResponse('You have %s unread messages.', unread_count)
         else:
-            return HttpResponse('An errorhas occured, Please check your connection.')
+            return HttpResponse('An error has occured, Please check your connection.')
 
 
 class UnreadNotificationsList (NotificationAPIView):
@@ -412,13 +412,7 @@ def mark_as_read(request, slug=None):
     notification = get_object_or_404(
         Notification, recipient=User.objects.all().first(), id=notification_id)
     notification.mark_as_read()
-
-    _next = request.GET.get('next')
-
-    if _next:
-        return redirect(_next)
-
-    return redirect('notifications:unread')
+    return notification
 
 
 @login_required
@@ -433,13 +427,7 @@ def delete(request, slug=None):
         notification.save()
     else:
         notification.delete()
-
-    _next = request.GET.get('next')
-
-    if _next:
-        return redirect(_next)
-
-    return redirect('notifications:all')
+    return notification
 
 
 @login_required
