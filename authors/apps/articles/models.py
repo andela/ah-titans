@@ -9,6 +9,7 @@ from django.db.models.signals import post_save, pre_save
 from django.utils.text import slugify
 from mptt.models import MPTTModel, TreeForeignKey
 from notifications.signals import notify
+from django.contrib.contenttypes.models import ContentType
 
 
 class Article(TimestampModel):
@@ -66,6 +67,16 @@ class Tag(TimestampModel):
 
     def __str__(self):
         return '{}'.format(self.tag)
+
+
+# class Notification(models.Model):
+#     unread = models.BooleanField(default=True, blank=False, db_index=True)
+#     verb = models.CharField(max_length=255)
+#     description = models.TextField(blank=True, null=True)
+#     actor_content_type = models.ForeignKey(
+#         ContentType, related_name='notify_actor', on_delete=models.CASCADE)
+#     emailed = models.BooleanField(default=False, db_index=True)
+#     subscribed = models.BooleanField(default=True, db_index=True)
 
 
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
