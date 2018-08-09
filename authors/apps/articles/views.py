@@ -1,3 +1,4 @@
+import json
 from django.db.models import Avg
 from django.forms.models import model_to_dict
 from rest_framework import generics, mixins, status, viewsets
@@ -10,7 +11,7 @@ from rest_framework.views import APIView
 
 from .models import Article, Comment, Ratings, Tag
 from .renderers import (ArticleJSONRenderer, CommentJSONRenderer,
-                        RatingJSONRenderer)
+                        NotificationJSONRenderer, RatingJSONRenderer)
 from .serializers import (ArticleSerializer, CommentSerializer,
                           NotificationSerializer, RatingSerializer,
                           TagSerializer)
@@ -323,6 +324,7 @@ class NotificationAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
     queryset = Article.objects.all()
     serializer_class = NotificationSerializer
+    # renderer_classes = NotificationJSONRenderer
 
     def list(self, request):
         unread_count = request.user.notifications.unread().count()
