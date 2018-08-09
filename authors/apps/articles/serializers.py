@@ -111,10 +111,6 @@ class RatingSerializer(serializers.Serializer):
 
     rating = serializers.IntegerField(required=True)
 
-    class Meta:
-        model = Article
-        fields = ['rating', 'total_rating', 'raters']
-
     def validate(self, data):
         # The `validate` method is used to validate the title, description and body
         # provided by the user during creating or updating an article
@@ -163,4 +159,5 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['id', 'unread', 'verb', 'actor_object_id', 'timestamp', 'recipient']
+        fields = ['id', 'unread', 'verb',
+                  'actor_object_id', 'timestamp', 'recipient']

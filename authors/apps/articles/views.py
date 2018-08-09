@@ -1,4 +1,3 @@
-
 from django.db.models import Avg
 from django.forms.models import model_to_dict
 from rest_framework import generics, mixins, status, viewsets
@@ -160,17 +159,21 @@ class RateAPIView(APIView):
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
-        ratings = Ratings.objects.filter(rater=request.user.profile, article=article).first()
+        ratings = Ratings.objects.filter(
+            rater=request.user.profile, article=article).first()
         if not ratings:
-            ratings = Ratings(article=article, rater=request.user.profile, stars=rating)
+            ratings = Ratings(
+                article=article, rater=request.user.profile, stars=rating)
             ratings.save()
-            avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+            avg = Ratings.objects.filter(
+                article=article).aggregate(Avg('stars'))
             return Response({
                 "avg": avg
             }, status=status.HTTP_201_CREATED)
 
         if ratings.counter >= 5:
-            raise PermissionDenied("You are not allowed to rate this article more than 5 times.")
+            raise PermissionDenied(
+                "You are not allowed to rate this article more than 5 times.")
         ratings.counter += 1
         ratings.stars = rating
         ratings.save()
@@ -323,6 +326,20 @@ class NotificationAPIView(generics.ListAPIView):
 
     def list(self, request):
         unread_count = request.user.notifications.unread().count()
-        serializer = self.serializer_class(data=request.user.notifications.unread(), many=True)
+        serializer = self.serializer_class(
+            data=request.user.notifications.unread(), many=True)
+        serializer.is_valid()
+        return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
+
+
+class CommentNotificationAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, )
+    queryset = Article.objects.all()
+    serializer_class = NotificationSerializer
+
+    def list(self, request):
+        unread_count = request.user.notifications.unread().count()
+        serializer = self.serializer_class(
+            data=request.user.notifications.unread(), many=True)
         serializer.is_valid()
         return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)

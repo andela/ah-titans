@@ -22,7 +22,8 @@ class Article(TimestampModel):
     image_url = models.URLField(blank=True, null=True)
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
-    dislikes = models.ManyToManyField(User, related_name='dislikes', blank=True)
+    dislikes = models.ManyToManyField(
+        User, related_name='dislikes', blank=True)
     tags = models.ManyToManyField(
         'articles.Tag', related_name='articles'
     )
@@ -33,7 +34,8 @@ class Article(TimestampModel):
 
 class Comment(MPTTModel, TimestampModel):
     body = models.TextField()
-    parent = TreeForeignKey('self', related_name='reply_set', null=True, on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', related_name='reply_set',
+                            null=True, on_delete=models.CASCADE)
 
     article = models.ForeignKey(
         'articles.Article', related_name='comments', on_delete=models.CASCADE
@@ -93,3 +95,11 @@ def notify_followers_new_article(sender, instance, created, **kwargs):
 
 
 post_save.connect(notify_followers_new_article, sender=Article)
+
+
+def notify_comments_favorited_articles(sender, instance, created, **kwargs):
+    notify.send(instance, recipient=User.objects.all(),
+                verb='was coomented on')
+
+
+post_save.connect(notify_comments_favorited_articles, sender=Comment)
