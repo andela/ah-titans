@@ -1,20 +1,20 @@
 
 from django.db.models import Avg
-from rest_framework import mixins, status, viewsets,generics
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.forms.models import model_to_dict
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-from rest_framework.exceptions import NotFound, PermissionDenied
-
-from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
-from rest_framework.response import Response
-from rest_framework import mixins, status, viewsets, generics
-from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
-from .models import Article, Ratings, Comment, Tag
-from .serializers import ArticleSerializer, RatingSerializer
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from .models import Article, Comment, Ratings, Tag
+from .renderers import (ArticleJSONRenderer, CommentJSONRenderer,
+                        RatingJSONRenderer)
+from .serializers import (ArticleSerializer, CommentSerializer,
+                          NotificationSerializer, RatingSerializer,
+                          TagSerializer)
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -24,7 +24,6 @@ class LargeResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 10
-
 
 
 class ArticleViewSet(mixins.CreateModelMixin,
@@ -39,7 +38,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
     """
     lookup_field = 'slug'
     queryset = Article.objects.annotate(
-        average_rating = Avg("rating__stars")
+        average_rating=Avg("rating__stars")
     )
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
@@ -71,7 +70,6 @@ class ArticleViewSet(mixins.CreateModelMixin,
         )
         output = self.get_paginated_response(serializer.data)
         return output
-
 
     def retrieve(self, request, slug):
         """
@@ -168,16 +166,16 @@ class RateAPIView(APIView):
             ratings.save()
             avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
             return Response({
-                "avg":avg
-                }, status=status.HTTP_201_CREATED)
+                "avg": avg
+            }, status=status.HTTP_201_CREATED)
 
-        if ratings.counter >= 5: 
+        if ratings.counter >= 5:
             raise PermissionDenied("You are not allowed to rate this article more than 5 times.")
         ratings.counter += 1
         ratings.stars = rating
         ratings.save()
         avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
-        return Response({"avg":avg}, status=status.HTTP_201_CREATED)
+        return Response({"avg": avg}, status=status.HTTP_201_CREATED)
 
 
 class CommentsListCreateAPIView(generics.ListCreateAPIView):
@@ -220,7 +218,7 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    
+
     def destroy(self, request, article_slug=None, comment_pk=None):
         try:
             comment = Comment.objects.get(pk=comment_pk,)
@@ -236,10 +234,10 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
     #     print(comment)
     #     serializer = self.serializer_class(comment)
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     def create(self, request,  article_slug=None, comment_pk=None):
-        
-        data = request.data.get('comment',None)
+
+        data = request.data.get('comment', None)
         context = {'author': request.user.profile}
         try:
             context['article'] = Article.objects.get(slug=article_slug)
@@ -249,7 +247,7 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
             context['parent'] = Comment.objects.get(pk=comment_pk)
         except Comment.DoesNotExist:
             raise NotFound('A comment with this id does not exists')
-            
+
         serializer = self.serializer_class(data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -303,6 +301,7 @@ class DislikesAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class TagListAPIView(generics.ListAPIView):
     queryset = Tag.objects.all()
     permission_classes = (AllowAny,)
@@ -315,3 +314,15 @@ class TagListAPIView(generics.ListAPIView):
         return Response({
             'tags': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+class NotificationAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, )
+    queryset = Article.objects.all()
+    serializer_class = NotificationSerializer
+
+    def list(self, request):
+        unread_count = request.user.notifications.unread().count()
+        serializer = self.serializer_class(data=request.user.notifications.unread(), many=True)
+        serializer.is_valid()
+        return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)

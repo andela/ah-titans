@@ -5,9 +5,10 @@ from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampModel
 from authors.apps.profiles.models import Profile
 from django.db import models
-from mptt.models import MPTTModel, TreeForeignKey
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.utils.text import slugify
+from mptt.models import MPTTModel, TreeForeignKey
+from notifications.signals import notify
 
 
 class Article(TimestampModel):
@@ -29,9 +30,10 @@ class Article(TimestampModel):
     def __str__(self):
         return self.title
 
-class Comment(MPTTModel,TimestampModel):
+
+class Comment(MPTTModel, TimestampModel):
     body = models.TextField()
-    parent = TreeForeignKey('self',related_name='reply_set',null=True ,on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', related_name='reply_set', null=True, on_delete=models.CASCADE)
 
     article = models.ForeignKey(
         'articles.Article', related_name='comments', on_delete=models.CASCADE
@@ -52,6 +54,16 @@ class Ratings(models.Model):
         Article,  on_delete=models.CASCADE, related_name="rating")
     counter = models.IntegerField(default=0)
     stars = models.IntegerField(null=False)
+
+
+class Tag(TimestampModel):
+    """This class defines the tag model"""
+
+    tag = models.CharField(max_length=255)
+    slug = models.SlugField(db_index=True, unique=True)
+
+    def __str__(self):
+        return '{}'.format(self.tag)
 
 
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
@@ -76,11 +88,8 @@ def pre_save_article_receiver(sender, instance, *args, **kwargs):
 pre_save.connect(pre_save_article_receiver, sender=Article)
 
 
-class Tag(TimestampModel):
-    """This class defines the tag model"""
+def notify_followers_new_article(sender, instance, created, **kwargs):
+    notify.send(instance, recipient=User.objects.all(), verb='was posted')
 
-    tag = models.CharField(max_length=255)
-    slug = models.SlugField(db_index=True, unique=True)
 
-    def __str__(self):
-        return '{}'.format(self.tag)
+post_save.connect(notify_followers_new_article, sender=Article)
