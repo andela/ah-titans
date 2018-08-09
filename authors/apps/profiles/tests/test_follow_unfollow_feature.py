@@ -127,7 +127,7 @@ class ViewTestCase(TestCase):
         # test no followers
         response = self.client.get('/api/followers/',
                                    HTTP_AUTHORIZATION='Token ' + token)
-        self.assertIn('You have 0 followers.', response.content.decode())
+        self.assertEqual(response.data.get('results'), [])
 
         # add one follower
         response = self.client.post('/api/profiles/Jane/follow/',
@@ -137,19 +137,18 @@ class ViewTestCase(TestCase):
         # test one follower can be retrieved for user
         response = self.client.get('/api/followers/',
                                    HTTP_AUTHORIZATION='Token ' + token2)
-        self.assertIn('Jacob', response.content.decode())
+        self.assertEqual(1, json.loads(response.content).get('followers').get('count'))
 
     def test_retrieve_following(self):
         """
         Test user can retrieve a list of users they are following
         """
         token = self.login_verified_user(self.testUser1)
-        token2 = self.login_verified_user(self.testUser2)
+        self.login_verified_user(self.testUser2)
         # test no followed users
         response = self.client.get('/api/following/',
                                    HTTP_AUTHORIZATION='Token ' + token)
-        self.assertIn('You are following 0 users.', response.content.decode())
-
+        self.assertEqual(response.data.get('results'), [])
         # add one following
         response = self.client.post('/api/profiles/Jane/follow/',
                                     HTTP_AUTHORIZATION='Token ' + token)
@@ -158,4 +157,4 @@ class ViewTestCase(TestCase):
         # test one follower can be retrieved for user
         response = self.client.get('/api/following/',
                                    HTTP_AUTHORIZATION='Token ' + token)
-        self.assertIn('Jane', response.content.decode())
+        self.assertEqual(1, json.loads(response.content).get('following').get('count'))

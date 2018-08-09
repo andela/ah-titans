@@ -2,16 +2,16 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from rest_framework import serializers, status
 from rest_framework.exceptions import NotFound
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 #my local imports
-from .models import Profile
-from .renderers import ProfileJSONRenderer
-from .serializers import ProfileSerializer
 from .exceptions import ProfileDoesNotExist
+from .models import Profile
+from .renderers import ProfileJSONRenderer, FollowersJSONRenderer, FollowingJSONRenderer
+from .serializers import ProfileSerializer
 
 
 class ProfileRetrieveAPIView(RetrieveAPIView):
@@ -81,36 +81,19 @@ class UserFollowAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class FollowingRetrieve(APIView):
+class FollowingRetrieve(ListAPIView):
     permission_classes = (IsAuthenticated,)
-    renderer_classes = (ProfileJSONRenderer,)
-    # serializer_class = FollowersSerializer
-
-    def get(self, request):
-        follows = request.user.profile.follows.all()
-        if len(follows) == 0:
-            return Response({"following": "You are following 0 users."},
-                            status=status.HTTP_200_OK)
-        list1 = []
-        for user in follows:
-            list1.append(user.user.username)
-        return Response({"following": list1, "count": len(follows)},
-                        status=status.HTTP_200_OK)
-
-
-class FollowersRetrieve(APIView):
-    permission_classes = (IsAuthenticated,)
-    renderer_classes = (ProfileJSONRenderer,)
+    renderer_classes = (FollowingJSONRenderer,)
     serializer_class = ProfileSerializer
 
-    def get(self, request):
-        followers = request.user.profile.follower.all()
-        if len(followers) == 0:
-            return Response({"followers": "You have 0 followers."},
-                            status=status.HTTP_200_OK)
-        list1 = []
-        for person in followers:
-            list1.append(person.user.username)
+    def get_queryset(self):
+        return self.request.user.profile.follows.all()
 
-        return Response({"followers": list1, "count": len(followers)},
-                        status=status.HTTP_200_OK)
+
+class FollowersRetrieve(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (FollowersJSONRenderer,)
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        return self.request.user.profile.follower.all()
