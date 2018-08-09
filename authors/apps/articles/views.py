@@ -340,8 +340,11 @@ class CommentNotificationAPIView(generics.ListAPIView):
     serializer_class = NotificationSerializer
 
     def list(self, request):
-        unread_count = request.user.notifications.unread().count()
-        serializer = self.serializer_class(
-            data=request.user.notifications.unread(), many=True)
-        serializer.is_valid()
-        return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
+        favorited_article = Article.objects.get(favorited="True")
+        for favorited_article in Article.objects.all():
+            unread_count = request.user.notifications.unread().count()
+            serializer = self.serializer_class(
+                data=request.user.notifications.unread(), many=True)
+            serializer.is_valid()
+            return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
+        return Response('You have no new notifications')
