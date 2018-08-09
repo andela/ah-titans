@@ -32,4 +32,6 @@ urlpatterns = [
     path('notifications/mark-as-read/<slug>/',
          mark_as_read, name='mark_as_read'),
     path('notifications/delete/<slug>/', delete, name='delete'),
+    path('notifications/subscriptionOn/', subscription_on, name='subscription_on'),
+    path('notifications/subscriptionOff/', subscription_off, name='subscription_off'),
 ]
