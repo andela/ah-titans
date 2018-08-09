@@ -8,7 +8,21 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils.encoding import force_bytes, force_text
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from notifications.utils import id2slug, slug2id
+from notifications.models import Notification
 
+
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
+from django.http.response import HttpResponse
+from django.conf import settings
+
+from authors.apps.authentication.verification import SendEmail, account_activation_token
+
+from authors.apps.authentication.models import User
 from .models import Article, Comment, Ratings, Tag
 from .renderers import (ArticleJSONRenderer, CommentJSONRenderer,
                         NotificationJSONRenderer, RatingJSONRenderer)
@@ -336,7 +350,7 @@ class NotificationAPIView(generics.ListAPIView):
 
 class CommentNotificationAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
-    queryset = Article.objects.all()
+    # queryset = Article.objects.all()
     serializer_class = NotificationSerializer
 
     def list(self, request):
@@ -346,5 +360,85 @@ class CommentNotificationAPIView(generics.ListAPIView):
             serializer = self.serializer_class(
                 data=request.user.notifications.unread(), many=True)
             serializer.is_valid()
+            SendEmail().send_verification_email(user.get('email', None), request)
             return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
         return Response('You have no new notifications')
+
+
+class Notifications(APIView):
+    # This class redirects a user to the notification page once they have clicked the
+    # link sent to their email
+
+    permission_classes = (AllowAny, )
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            unread_count = request.user.notifications.unread().count()
+            user.is_active = True
+            user.is_verified = True
+            user.save()
+            return HttpResponse('You have %s unread messages.', unread_count)
+        else:
+            return HttpResponse('An errorhas occured, Please check your connection.')
+
+
+class UnreadNotificationsList (NotificationAPIView):
+    user = User.objects.all().first()
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        return self.request.user.notifications.unread()
+
+
+@login_required
+def mark_all_as_read(request):
+    user = User.objects.all().first()
+    request.user.notifications.mark_all_as_read()
+
+    _next = request.GET.get('next')
+
+    if _next:
+        return redirect(_next)
+    return redirect('notifications:unread')
+
+
+@login_required
+def mark_as_read(request, slug=None):
+    notification_id = slug2id(slug)
+
+    notification = get_object_or_404(
+        Notification, recipient=User.objects.all().first(), id=notification_id)
+    notification.mark_as_read()
+
+    _next = request.GET.get('next')
+
+    if _next:
+        return redirect(_next)
+
+    return redirect('notifications:unread')
+
+
+@login_required
+def delete(request, slug=None):
+    notification_id = slug2id(slug)
+
+    notification = get_object_or_404(
+        Notification, recipient=User.objects.all().first(), id=notification_id)
+
+    if settings.get_config()['SOFT_DELETE']:
+        notification.deleted = True
+        notification.save()
+    else:
+        notification.delete()
+
+    _next = request.GET.get('next')
+
+    if _next:
+        return redirect(_next)
+
+    return redirect('notifications:all')
