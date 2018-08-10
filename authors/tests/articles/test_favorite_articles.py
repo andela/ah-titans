@@ -11,8 +11,6 @@ from authors.apps.authentication.verification import SendEmail
 from authors.apps.authentication.views import Activate
 
 
-
-
 class ViewTestCase(TestCase):
     """Test suite for the api views."""
 
@@ -51,8 +49,6 @@ class ViewTestCase(TestCase):
             }
 
         }
-
-       
 
         self.factory = APIRequestFactory()
         self.client = APIClient()
@@ -119,7 +115,6 @@ class ViewTestCase(TestCase):
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
-
 
     def test_favorite_article(self):
         """
@@ -198,13 +193,11 @@ class ViewTestCase(TestCase):
             format='json'
         )
 
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(True, response.data['favorited'])
         self.assertEqual(1, response.data['favoriteCount'])
         self.assertEqual(2, response1.data['favoriteCount'])
-
 
     def test_favourite_count_decrement(self):
         
@@ -228,7 +221,6 @@ class ViewTestCase(TestCase):
             format='json'
         )
 
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(True, response.data['favorited'])
@@ -242,7 +234,6 @@ class ViewTestCase(TestCase):
             format='json'
         )
         self.assertEqual(1, response1.data['favoriteCount'])
-
 
     def test_can_favorite_once(self):
         """
@@ -265,7 +256,6 @@ class ViewTestCase(TestCase):
         )
 
         self.assertEqual(1, response.data['favoriteCount'])
-
 
     def test_wrong_article_slug(self):
         """
