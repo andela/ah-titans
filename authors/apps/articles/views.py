@@ -351,7 +351,7 @@ class NotificationAPIView(generics.ListAPIView):
 class CommentNotificationAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
     # queryset = Article.objects.all()
-    user = User.objects.filter(email=email).first()
+    # user = User.objects.filter(email=email).first()
     serializer_class = NotificationSerializer
 
     def list(self, request):
@@ -361,7 +361,7 @@ class CommentNotificationAPIView(generics.ListAPIView):
             serializer = self.serializer_class(
                 data=request.user.notifications.unread(), many=True)
             serializer.is_valid()
-            SendEmail().send_verification_email(self.user, request)
+            # SendEmail().send_verification_email(self.user, request)
             return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
         return Response('You have no new notifications')
 
@@ -385,65 +385,65 @@ class Notifications(APIView):
             return HttpResponse('An error has occured, Please check your connection.')
 
 
-class UnreadNotificationsList (NotificationAPIView):
-    user = User.objects.filter(email=email).first()
-    permission_classes = (IsAuthenticated, )
+# class UnreadNotificationsList (NotificationAPIView):
+#     user = User.objects.filter(email=email).first()
+#     permission_classes = (IsAuthenticated, )
 
-    def get_queryset(self):
-        return self.request.user.notifications.unread()
-
-
-@login_required
-def mark_all_as_read(request):
-    user = User.objects.filter(email=email).first()
-    request.user.notifications.mark_all_as_read()
-
-    _next = request.GET.get('next')
-
-    if _next:
-        return redirect(_next)
-    return redirect('notifications:unread')
+#     def get_queryset(self):
+#         return self.request.user.notifications.unread()
 
 
-@login_required
-def mark_as_read(request, slug=None):
-    notification_id = slug2id(slug)
+# @login_required
+# def mark_all_as_read(request):
+#     user = User.objects.filter(email=email).first()
+#     request.user.notifications.mark_all_as_read()
 
-    notification = get_object_or_404(
-        Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
-    notification.mark_as_read()
-    return notification
+#     _next = request.GET.get('next')
 
-
-@login_required
-def delete(request, slug=None):
-    notification_id = slug2id(slug)
-
-    notification = get_object_or_404(
-        Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
-
-    if settings.get_config()['SOFT_DELETE']:
-        notification.deleted = True
-        notification.save()
-    else:
-        notification.delete()
-    return notification
+#     if _next:
+#         return redirect(_next)
+#     return redirect('notifications:unread')
 
 
-@login_required
-def subscription_on(request):
-    # response = request.get.
-    response = "True"
-    response.save()
-    return response
+# @login_required
+# def mark_as_read(request, slug=None):
+#     notification_id = slug2id(slug)
+
+#     notification = get_object_or_404(
+#         Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
+#     notification.mark_as_read()
+#     return notification
 
 
-@login_required
-def subscription_off(request):
-    # response = request.get.
-    response = "False"
-    response.save()
-    return response
+# @login_required
+# def delete(request, slug=None):
+#     notification_id = slug2id(slug)
+
+#     notification = get_object_or_404(
+#         Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
+
+#     if settings.get_config()['SOFT_DELETE']:
+#         notification.deleted = True
+#         notification.save()
+#     else:
+#         notification.delete()
+#     return notification
+
+
+# @login_required
+# def subscription_on(request):
+#     # response = request.get.
+#     response = "True"
+#     response.save()
+#     return response
+
+
+# @login_required
+# def subscription_off(request):
+#     # response = request.get.
+#     response = "False"
+#     response.save()
+#     return response
 
 
 # // REMEMBER TO CHECK IN ALL THE FUNCTIONS ABOVE IF SUBCRIPTION IS ON OR OFF BEFORE SENDING NOTIFICATION
