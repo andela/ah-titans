@@ -22,10 +22,6 @@ class LargeResultsSetPagination(PageNumberPagination):
     max_page_size = 10
 
 
-
-
-
-
 class ArticleViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
