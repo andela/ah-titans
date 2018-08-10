@@ -1,5 +1,4 @@
 import json
-
 from django.db.models import Avg
 from django.forms.models import model_to_dict
 from rest_framework import generics, mixins, status, viewsets
@@ -9,7 +8,21 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils.encoding import force_bytes, force_text
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from notifications.utils import id2slug, slug2id
+from notifications.models import Notification
 
+
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
+from django.http.response import HttpResponse
+from django.conf import settings
+
+from authors.apps.authentication.verification import SendEmail, account_activation_token
+
+from authors.apps.authentication.models import User
 from .models import Article, Comment, Ratings, Tag
 from .renderers import (ArticleJSONRenderer, CommentJSONRenderer,
                         NotificationJSONRenderer, RatingJSONRenderer)
@@ -161,17 +174,21 @@ class RateAPIView(APIView):
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
-        ratings = Ratings.objects.filter(rater=request.user.profile, article=article).first()
+        ratings = Ratings.objects.filter(
+            rater=request.user.profile, article=article).first()
         if not ratings:
-            ratings = Ratings(article=article, rater=request.user.profile, stars=rating)
+            ratings = Ratings(
+                article=article, rater=request.user.profile, stars=rating)
             ratings.save()
-            avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+            avg = Ratings.objects.filter(
+                article=article).aggregate(Avg('stars'))
             return Response({
                 "avg": avg
             }, status=status.HTTP_201_CREATED)
 
         if ratings.counter >= 5:
-            raise PermissionDenied("You are not allowed to rate this article more than 5 times.")
+            raise PermissionDenied(
+                "You are not allowed to rate this article more than 5 times.")
         ratings.counter += 1
         ratings.stars = rating
         ratings.save()
@@ -334,3 +351,106 @@ class NotificationAPIView(generics.ListAPIView):
         read_serializer.is_valid()
         return Response({'unread_count': unread_count, 'read_count': read_count,
                          'unread_list': unread_serializer.data, 'read_list': read_serializer.data}, status=status.HTTP_200_OK)
+
+
+class CommentNotificationAPIView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated, )
+    # queryset = Article.objects.all()
+    # user = User.objects.filter(email=email).first()
+    serializer_class = NotificationSerializer
+
+    def list(self, request):
+        favorited_article = Article.objects.get(favorited="True")
+        for favorited_article in Article.objects.all():
+            unread_count = request.user.notifications.unread().count()
+            serializer = self.serializer_class(
+                data=request.user.notifications.unread(), many=True)
+            serializer.is_valid()
+            # SendEmail().send_verification_email(self.user, request)
+            return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
+        return Response('You have no new notifications')
+
+
+class Notifications(APIView):
+    # This class redirects a user to the notification page once they have clicked the
+    # link sent to their email
+
+    permission_classes = (AllowAny, )
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            unread_count = request.user.notifications.unread().count()
+            return HttpResponse('You have %s unread messages.', unread_count)
+        else:
+            return HttpResponse('An error has occured, Please check your connection.')
+
+
+# class UnreadNotificationsList (NotificationAPIView):
+#     user = User.objects.filter(email=email).first()
+#     permission_classes = (IsAuthenticated, )
+
+#     def get_queryset(self):
+#         return self.request.user.notifications.unread()
+
+
+# @login_required
+# def mark_all_as_read(request):
+#     user = User.objects.filter(email=email).first()
+#     request.user.notifications.mark_all_as_read()
+
+#     _next = request.GET.get('next')
+
+#     if _next:
+#         return redirect(_next)
+#     return redirect('notifications:unread')
+
+
+# @login_required
+# def mark_as_read(request, slug=None):
+#     notification_id = slug2id(slug)
+
+#     notification = get_object_or_404(
+#         Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
+#     notification.mark_as_read()
+#     return notification
+
+
+# @login_required
+# def delete(request, slug=None):
+#     notification_id = slug2id(slug)
+
+#     notification = get_object_or_404(
+#         Notification, recipient=User.objects.filter(email=email).first(), id=notification_id)
+
+#     if settings.get_config()['SOFT_DELETE']:
+#         notification.deleted = True
+#         notification.save()
+#     else:
+#         notification.delete()
+#     return notification
+
+
+# @login_required
+# def subscription_on(request):
+#     # response = request.get.
+#     response = "True"
+#     response.save()
+#     return response
+
+
+# @login_required
+# def subscription_off(request):
+#     # response = request.get.
+#     response = "False"
+#     response.save()
+#     return response
+
+
+# // REMEMBER TO CHECK IN ALL THE FUNCTIONS ABOVE IF SUBCRIPTION IS ON OR OFF BEFORE SENDING NOTIFICATION
+# // SEND A DESCRIPTIVE TEMPLATE WITH COMMENT CONTENT AND WHO MADE THE COMMENT
+# // TEST AND UI

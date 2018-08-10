@@ -9,6 +9,7 @@ from django.db.models.signals import post_save, pre_save
 from django.utils.text import slugify
 from mptt.models import MPTTModel, TreeForeignKey
 from notifications.signals import notify
+from django.contrib.contenttypes.models import ContentType
 
 
 class Article(TimestampModel):
@@ -22,7 +23,8 @@ class Article(TimestampModel):
     image_url = models.URLField(blank=True, null=True)
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
-    dislikes = models.ManyToManyField(User, related_name='dislikes', blank=True)
+    dislikes = models.ManyToManyField(
+        User, related_name='dislikes', blank=True)
     tags = models.ManyToManyField(
         'articles.Tag', related_name='articles'
     )
@@ -33,7 +35,8 @@ class Article(TimestampModel):
 
 class Comment(MPTTModel, TimestampModel):
     body = models.TextField()
-    parent = TreeForeignKey('self', related_name='reply_set', null=True, on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', related_name='reply_set',
+                            null=True, on_delete=models.CASCADE)
 
     article = models.ForeignKey(
         'articles.Article', related_name='comments', on_delete=models.CASCADE
@@ -64,6 +67,16 @@ class Tag(TimestampModel):
 
     def __str__(self):
         return '{}'.format(self.tag)
+
+
+# class Notification(models.Model):
+#     unread = models.BooleanField(default=True, blank=False, db_index=True)
+#     verb = models.CharField(max_length=255)
+#     description = models.TextField(blank=True, null=True)
+#     actor_content_type = models.ForeignKey(
+#         ContentType, related_name='notify_actor', on_delete=models.CASCADE)
+#     emailed = models.BooleanField(default=False, db_index=True)
+#     subscribed = models.BooleanField(default=True, db_index=True)
 
 
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
@@ -100,3 +113,11 @@ def notify_followers_new_article(sender, instance, created, **kwargs):
 
 
 post_save.connect(notify_followers_new_article, sender=Article)
+
+
+def notify_comments_favorited_articles(sender, instance, created, **kwargs):
+    notify.send(instance, recipient=User.objects.all(),
+                verb='was commented on')
+
+
+post_save.connect(notify_comments_favorited_articles, sender=Comment)
