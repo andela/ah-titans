@@ -321,10 +321,16 @@ class NotificationAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated, )
     queryset = Article.objects.all()
     serializer_class = NotificationSerializer
-    # renderer_classes = NotificationJSONRenderer
+    renderer_classes = (NotificationJSONRenderer, )
 
     def list(self, request):
         unread_count = request.user.notifications.unread().count()
-        serializer = self.serializer_class(data=request.user.notifications.unread(), many=True)
-        serializer.is_valid()
-        return Response({'unread_count': unread_count, 'unread_list': serializer.data}, status=status.HTTP_200_OK)
+        read_count = request.user.notifications.read().count()
+        unread_serializer = self.serializer_class(
+            data=request.user.notifications.unread(), many=True)
+        unread_serializer.is_valid()
+        read_serializer = self.serializer_class(
+            data=request.user.notifications.read(), many=True)
+        read_serializer.is_valid()
+        return Response({'unread_count': unread_count, 'read_count': read_count,
+                         'unread_list': unread_serializer.data, 'read_list': read_serializer.data}, status=status.HTTP_200_OK)

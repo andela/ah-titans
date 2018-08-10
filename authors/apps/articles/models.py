@@ -96,7 +96,6 @@ def notify_followers_new_article(sender, instance, created, **kwargs):
     rec = []
     for follower in user.profile.follower.all():
         rec.append(follower.user)
-    print(rec)
     notify.send(instance, recipient=rec, verb='was posted')
 
 
