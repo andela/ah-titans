@@ -34,6 +34,7 @@ class RatingJSONRenderer(JSONRenderer):
             'rate': data,
         })
 
+
 class CommentJSONRenderer(JSONRenderer):
     charset = 'utf-8'
 
@@ -53,6 +54,7 @@ class CommentJSONRenderer(JSONRenderer):
             'article': 'No article found.'
         })
 
+
 class FavoriteJSONRenderer(JSONRenderer):
     charset = 'utf-8'
     """
@@ -60,7 +62,23 @@ class FavoriteJSONRenderer(JSONRenderer):
     """
 
     def render(self, data, media_type=None, renderer_context=None):
-        
+
         return json.dumps({
-            'articles':data
+            'articles': data
+        })
+
+
+class NotificationJSONRenderer(JSONRenderer):
+    charset = 'utf-8'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        """
+        Render the articles in a structured manner for the end user.
+        """
+        if data is not None:
+            return json.dumps({
+                'notifications': data
+            })
+        return json.dumps({
+            'notifications': 'No notifications found.'
         })

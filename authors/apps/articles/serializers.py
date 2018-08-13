@@ -1,39 +1,45 @@
 import re
+
+from authors.apps.profiles.serializers import ProfileSerializer
+from notifications.models import Notification
 from rest_framework import serializers
+
 from .models import Article, Comment, Ratings, Tag
 from .tag_relations import TagRelatedField
 
-from authors.apps.profiles.serializers import ProfileSerializer
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
+
 class CommentSerializer(serializers.ModelSerializer):
-        author = ProfileSerializer(required=False)
-        created_at = serializers.DateTimeField(read_only=True)
-        updated_at = serializers.DateTimeField(read_only=True)
-        reply_set = RecursiveSerializer(many=True, read_only=True)
+    author = ProfileSerializer(required=False)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    reply_set = RecursiveSerializer(many=True, read_only=True)
 
-        class Meta:
-            model = Comment
-            fields = (
-                'id',
-                'author',
-                'body',
-                'reply_set',
-                'created_at',
-                'updated_at',
-            )
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'author',
+            'body',
+            'reply_set',
+            'created_at',
+            'updated_at',
+        )
 
-        def create(self, validated_data):
-            article = self.context['article']
-            author = self.context['author']
-            parent = self.context.get('parent', None)
-            return Comment.objects.create(
-                author=author, article=article,parent=parent, **validated_data
-            )
+    def create(self, validated_data):
+        article = self.context['article']
+        author = self.context['author']
+        parent = self.context.get('parent', None)
+        return Comment.objects.create(
+            author=author, article=article, parent=parent, **validated_data
+        )
+
+
 class ArticleSerializer(serializers.ModelSerializer):
     """
     Defines the article serializer
@@ -55,20 +61,17 @@ class ArticleSerializer(serializers.ModelSerializer):
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
     favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')
-    
-
 
     class Meta:
         model = Article
-        fields = ['title', 'slug', 'body','comments',
+        fields = ['title', 'slug', 'body', 'comments',
                   'description', 'image_url', 'created_at',
                   'updated_at', 'author', 'average_rating',
-                  'likes', 'dislikes', 'dislikes_count', 'likes_count','tagList',
+                  'likes', 'dislikes', 'dislikes_count', 'likes_count', 'tagList',
                   'favorited', 'favoriteCount']
 
-
     def get_favorite_count(self, instance):
-        
+
         return instance.users_fav_articles.count()
 
     def is_favorited(self, instance):
@@ -79,7 +82,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         if instance.users_fav_articles.filter(user__username=username).count() == 0:
             return False
         return True
-            
+
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
 
@@ -123,12 +126,10 @@ class RatingSerializer(serializers.Serializer):
     """
 
     rating = serializers.IntegerField(required=True)
-   
+
     class Meta:
         model = Article
         fields = ['rating', 'total_rating', 'raters']
-
-
 
     def validate(self, data):
         # The `validate` method is used to validate the title, description and body
@@ -147,8 +148,8 @@ class RatingSerializer(serializers.Serializer):
                 """Rate must be a value between 1 and 5"""
             )
 
-
         return {"rating": rate}
+
 
 class TagSerializer(serializers.ModelSerializer):
     """
@@ -157,7 +158,22 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('tag',)
-    
+
         def to_representation(self, obj):
             return obj.tag
-       
+
+
+class GenericNotificationRelatedField(serializers.RelatedField):
+
+    def to_representation(self, value):
+        if isinstance(value, Article):
+            serializer = ArticleSerializer(value)
+
+        return serializer.data
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'unread', 'verb', 'actor_object_id', 'timestamp', 'recipient']

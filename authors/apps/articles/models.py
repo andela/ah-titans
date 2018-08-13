@@ -5,9 +5,10 @@ from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampModel
 from authors.apps.profiles.models import Profile
 from django.db import models
-from mptt.models import MPTTModel, TreeForeignKey
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.utils.text import slugify
+from mptt.models import MPTTModel, TreeForeignKey
+from notifications.signals import notify
 
 
 class Article(TimestampModel):
@@ -29,9 +30,10 @@ class Article(TimestampModel):
     def __str__(self):
         return self.title
 
-class Comment(MPTTModel,TimestampModel):
+
+class Comment(MPTTModel, TimestampModel):
     body = models.TextField()
-    parent = TreeForeignKey('self',related_name='reply_set',null=True ,on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', related_name='reply_set', null=True, on_delete=models.CASCADE)
 
     article = models.ForeignKey(
         'articles.Article', related_name='comments', on_delete=models.CASCADE
@@ -84,3 +86,27 @@ class Tag(TimestampModel):
 
     def __str__(self):
         return '{}'.format(self.tag)
+
+
+#############################################################################
+def notify_followers_new_article(sender, instance, created, **kwargs):
+    """
+    Notify followers of new article posted.
+    """
+    user = User.objects.get(pk=instance.author.id)
+    rec = []
+    for follower in user.profile.follower.all():
+        rec.append(follower.user)
+    notify.send(instance, recipient=rec, verb='was posted')
+
+
+post_save.connect(notify_followers_new_article, sender=Article)
+
+
+###############################################################################
+def notify_comments_favorited_articles(sender, instance, created, **kwargs):
+    notify.send(instance, recipient=User.objects.all(),
+                verb='was commented on')
+
+
+post_save.connect(notify_comments_favorited_articles, sender=Comment)
