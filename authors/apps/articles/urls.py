@@ -8,6 +8,7 @@ from .views import (ArticleViewSet, CommentsDestroyGetCreateAPIView,
 
 # , Notifications, UnreadNotificationsList, mark_all_as_read,
 #                     mark_as_read, delete
+from .views import ArticleViewSet, RateAPIView, CommentsListCreateAPIView, CommentsDestroyGetCreateAPIView, DislikesAPIView, LikesAPIView, TagListAPIView, FavoriteAPIView
 
 app_name = "articles"
 
@@ -36,4 +37,5 @@ urlpatterns = [
     # path('notifications/delete/<slug>/', delete, name='delete'),
     # path('notifications/subscriptionOn/', subscription_on, name='subscription_on'),
     # path('notifications/subscriptionOff/', subscription_off, name='subscription_off'),
+    path('articles/<slug>/favorite/', FavoriteAPIView.as_view()),
 ]
