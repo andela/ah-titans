@@ -51,6 +51,23 @@ class CommentJSONRenderer(JSONRenderer):
                 'articles': data
             })
         return json.dumps({
+            'comment': 'No article found.'
+        })
+
+
+class NotificationJSONRenderer(JSONRenderer):
+    charset = 'utf-8'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        """
+        Render the articles in a structured manner for the end user.
+        """
+        if data is not None:
+            return json.dumps({
+                'notifications': data
+            })
+        return json.dumps({
+            'notifications': 'No notifications found.',
             'article': 'No article found.'
         })
 

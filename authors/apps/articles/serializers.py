@@ -60,7 +60,14 @@ class ArticleSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(read_only=True, many=True)
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
+
+
+<< << << < HEAD
     favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')
+== == == =
+    favoriteCount = serializers.SerializerMethodField(
+        method_name='get_favorite_count')
+>>>>>> > 294428092b3aca9890d5bd004ab73d9c12a2ed85
 
     class Meta:
         model = Article

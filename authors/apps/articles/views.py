@@ -160,11 +160,14 @@ class RateAPIView(APIView):
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
-        ratings = Ratings.objects.filter(rater=request.user.profile, article=article).first()
+        ratings = Ratings.objects.filter(
+            rater=request.user.profile, article=article).first()
         if not ratings:
-            ratings = Ratings(article=article, rater=request.user.profile, stars=rating)
+            ratings = Ratings(
+                article=article, rater=request.user.profile, stars=rating)
             ratings.save()
-            avg = Ratings.objects.filter(article=article).aggregate(Avg('stars'))
+            avg = Ratings.objects.filter(
+                article=article).aggregate(Avg('stars'))
             return Response({
                 "avg": avg
             }, status=status.HTTP_201_CREATED)
