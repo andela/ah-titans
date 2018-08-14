@@ -60,11 +60,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(read_only=True, many=True)
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
-    favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')
+    favoriteCount = serializers.SerializerMethodField(
+        method_name='get_favorite_count')
 
     class Meta:
         model = Article
-        fields = ['title', 'slug', 'body', 'comments',
+        fields = ['id', 'title', 'slug', 'body', 'comments',
                   'description', 'image_url', 'created_at',
                   'updated_at', 'author', 'average_rating',
                   'likes', 'dislikes', 'dislikes_count', 'likes_count', 'tagList',
@@ -173,7 +174,11 @@ class GenericNotificationRelatedField(serializers.RelatedField):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    """
+    Defines the notifications serializer
+    """
 
     class Meta:
         model = Notification
-        fields = ['id', 'unread', 'verb', 'actor_object_id', 'timestamp', 'recipient']
+        fields = ['id', 'unread', 'verb',
+                  'actor_object_id', 'timestamp', 'recipient']
