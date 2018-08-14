@@ -1,3 +1,4 @@
+
 from django.db import models
 from django.conf import settings
 
@@ -47,3 +48,4 @@ class Profile(models.Model):
     def is_follower(self, profile):
         """Returns True if a user is following active user; False otherwise."""
         return self.follower.filter(pk=profile.pk).exists()
+    

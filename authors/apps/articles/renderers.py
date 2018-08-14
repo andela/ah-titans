@@ -50,8 +50,6 @@ class CommentJSONRenderer(JSONRenderer):
                 'articles': data
             })
         return json.dumps({
-                'comment': 'No article found.'
-            })         
             'article': 'No article found.'
         })
 
@@ -79,4 +77,3 @@ class CommentLikeJSONRenderer(JSONRenderer):
         return json.dumps({
             'comment':data
         })
-
