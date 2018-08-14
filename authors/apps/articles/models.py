@@ -1,14 +1,15 @@
 """
 Module contains Models for article related tables
 """
-from authors.apps.authentication.models import User
-from authors.apps.core.models import TimestampModel
-from authors.apps.profiles.models import Profile
 from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.utils.text import slugify
 from mptt.models import MPTTModel, TreeForeignKey
 from notifications.signals import notify
+from authors.apps.authentication.models import User
+from authors.apps.profiles.models import Profile
+from authors.apps.core.models import TimestampModel
+from authors.apps.articles.notification_emails import SendEmail
 
 
 class Article(TimestampModel):
@@ -34,7 +35,8 @@ class Article(TimestampModel):
 
 class Comment(MPTTModel, TimestampModel):
     body = models.TextField()
-    parent = TreeForeignKey('self', related_name='reply_set', null=True, on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', related_name='reply_set',
+                            null=True, on_delete=models.CASCADE)
 
     article = models.ForeignKey(
         'articles.Article', related_name='comments', on_delete=models.CASCADE
@@ -67,16 +69,6 @@ class Tag(TimestampModel):
         return '{}'.format(self.tag)
 
 
-# class Notification(models.Model):
-#     unread = models.BooleanField(default=True, blank=False, db_index=True)
-#     verb = models.CharField(max_length=255)
-#     description = models.TextField(blank=True, null=True)
-#     actor_content_type = models.ForeignKey(
-#         ContentType, related_name='notify_actor', on_delete=models.CASCADE)
-#     emailed = models.BooleanField(default=False, db_index=True)
-#     subscribed = models.BooleanField(default=True, db_index=True)
-
-
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
     """
     Method uses a signal to add slug to an article before saving it
@@ -104,33 +96,33 @@ def notify_followers_new_article(sender, instance, created, **kwargs):
     Notify followers of new article posted.
     """
     user = User.objects.get(pk=instance.author.id)
+    title = instance.title
+    author = instance.author.user.get_full_name()
     rec = []
     for follower in user.profile.follower.all():
         rec.append(follower.user)
-    notify.send(instance, recipient=rec, verb='was posted')
-
-    def __str__(self):
-        return '{}'.format(self.tag)
-
-
-#############################################################################
-def notify_followers_new_article(sender, instance, created, **kwargs):
-    """
-    Notify followers of new article posted.
-    """
-    user = User.objects.get(pk=instance.author.id)
-    rec = []
-    for follower in user.profile.follower.all():
-        rec.append(follower.user)
+        SendEmail().send_article_notification_email(
+            follower.user.email, title, author)
     notify.send(instance, recipient=rec, verb='was posted')
 
 
 post_save.connect(notify_followers_new_article, sender=Article)
 
 
-###############################################################################
 def notify_comments_favorited_articles(sender, instance, created, **kwargs):
-    notify.send(instance, recipient=User.objects.all(),
+    """
+    Signal that notifies users on comments on favorited items
+    """
+    users = instance.article.users_fav_articles.all()
+    title = instance.article.title
+    author = instance.article.author.user.get_full_name()
+    commenter = instance.author.user.get_full_name()
+    recipients = []
+    for user in users:
+        recipients.append(user.user)
+        SendEmail().send_comment_notification_email(
+            user.user.email, title, author, commenter)
+    notify.send(instance, recipient=recipients,
                 verb='was commented on')
 
 
