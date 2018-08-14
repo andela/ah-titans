@@ -170,6 +170,6 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('tag',)
     
-        def to_representation(self, obj):
-            return obj.tag
-       
+    def to_representation(self, obj):
+        return obj.tag
+    
