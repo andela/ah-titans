@@ -173,7 +173,8 @@ class RateAPIView(APIView):
             }, status=status.HTTP_201_CREATED)
 
         if ratings.counter >= 5:
-            raise PermissionDenied("You are not allowed to rate this article more than 5 times.")
+            raise PermissionDenied(
+                "You are not allowed to rate this article more than 5 times.")
         ratings.counter += 1
         ratings.stars = rating
         ratings.save()
@@ -369,7 +370,6 @@ class NotificationViewset(mixins.ListModelMixin,
                           mixins.RetrieveModelMixin,
                           viewsets.GenericViewSet):
     permission_classes = (IsAuthenticated, )
-    queryset = Article.objects.all()
     serializer_class = NotificationSerializer
     renderer_classes = (NotificationJSONRenderer, )
 
@@ -390,7 +390,7 @@ class NotificationViewset(mixins.ListModelMixin,
         try:
             instance_data = Notification.objects.get(pk=id)
         except Notification.DoesNotExist:
-            raise NotFound('The notification with the given id doesn\'t exist')
+            raise NotFound("The notification with the given id doesn't exist")
 
         instance_data.mark_as_read()
 
