@@ -30,9 +30,13 @@ class Article(TimestampModel):
         return self.title
 
 class Comment(MPTTModel,TimestampModel):
+    """
+    Defines the comments table for an article
+    """
     body = models.TextField()
+    comment_likes = models.ManyToManyField(User, related_name='comment_likes', blank=True)
+    comment_dislikes = models.ManyToManyField(User, related_name='comment_dislikes', blank=True)
     parent = TreeForeignKey('self',related_name='reply_set',null=True ,on_delete=models.CASCADE)
-
     article = models.ForeignKey(
         'articles.Article', related_name='comments', on_delete=models.CASCADE
     )

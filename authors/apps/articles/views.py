@@ -1,16 +1,14 @@
 from django.db.models import Avg
-from .models import Article, Ratings
 from django.db.models import Count
 from rest_framework import mixins, status, viewsets,generics
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-from rest_framework import mixins, status, viewsets, generics
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Article, Ratings, Comment, Tag
-from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
 from rest_framework.pagination import PageNumberPagination
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer
+from rest_framework.response import Response
+from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
+from .models import Article, Ratings, Comment, Tag
+from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer, CommentLikeJSONRenderer
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -316,8 +314,7 @@ class LikesAPIView(APIView):
                                            partial=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+    
 class DislikesAPIView(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
@@ -341,6 +338,7 @@ class DislikesAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class TagListAPIView(generics.ListAPIView):
     queryset = Tag.objects.all()
     permission_classes = (AllowAny,)
@@ -353,3 +351,57 @@ class TagListAPIView(generics.ListAPIView):
         return Response({
             'tags': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+class CommentLikesAPIView(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    renderer_classes = (CommentLikeJSONRenderer, )
+    serializer_class = CommentSerializer
+
+    def post(self, request,  article_slug=None, comment_pk=None):
+        serializer_context = {'request': request}
+        context = {'author': request.user.profile}
+
+        try:
+            context['article'] = Article.objects.get(slug=article_slug)
+        except Article.DoesNotExist:
+            raise NotFound('An article with this slug does not exist.')
+
+        try:
+            serializer_instance = Comment.objects.get(pk=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound('A comment with this id does not exist')
+
+        if serializer_instance in Comment.objects.filter(comment_dislikes=request.user):            
+            serializer_instance.comment_dislikes.remove(request.user)
+            
+        serializer_instance.comment_likes.add(request.user)
+            
+        serializer = self.serializer_class(serializer_instance, context=serializer_context,
+                                           partial=True)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request,  article_slug=None, comment_pk=None):
+        serializer_context = {'request': request}
+        context = {'author': request.user.profile}
+
+        try:
+            context['article'] = Article.objects.get(slug=article_slug)
+        except Article.DoesNotExist:
+            raise NotFound('An article with this slug does not exist.')
+
+        try:
+            serializer_instance = Comment.objects.get(pk=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound('A comment with this id does not exists')
+
+        if serializer_instance in Comment.objects.filter(comment_likes=request.user):
+            serializer_instance.comment_likes.remove(request.user)
+
+        serializer_instance.comment_dislikes.add(request.user)
+            
+        serializer = self.serializer_class(serializer_instance, context=serializer_context,
+                                           partial=True)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
