@@ -331,6 +331,7 @@ class ArticleFilter(django_filters.FilterSet):
 class FilterAPIView(generics.ListAPIView):
     
     queryset = Article.objects.all()
+    permission_classes = (AllowAny,)
     serializer_class = ArticleSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filter_class = ArticleFilter
