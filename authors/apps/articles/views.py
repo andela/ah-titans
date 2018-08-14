@@ -1,9 +1,14 @@
+
+import django_filters
 from django.db.models import Avg
-from .models import Article, Ratings
-from django.db.models import Count
-from rest_framework import mixins, status, viewsets,generics
+from rest_framework import mixins, status, viewsets, generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.exceptions import NotFound, PermissionDenied
+from django_filters.rest_framework import DjangoFilterBackend, filters
+from django_filters.widgets import CSVWidget
+from rest_framework.filters import SearchFilter
 from rest_framework import mixins, status, viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -353,3 +358,19 @@ class TagListAPIView(generics.ListAPIView):
         return Response({
             'tags': serializer.data
         }, status=status.HTTP_200_OK)
+
+class ArticleFilter(django_filters.FilterSet):
+
+    tags = django_filters.CharFilter(field_name="tags__tag")
+    author = django_filters.CharFilter(field_name="author__user__username")
+    
+    class Meta:
+        model = Article
+        fields = ('title', 'tags', 'author',)
+
+class FilterAPIView(generics.ListAPIView):
+    
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_class = ArticleFilter
