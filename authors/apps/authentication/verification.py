@@ -28,6 +28,7 @@ class SendEmail():
 
         token = account_activation_token.make_token(user)
         current_site = get_current_site(request)
+        print(current_site)
 
         # render template mail.txt
         body = render_to_string('mail.html', context={
