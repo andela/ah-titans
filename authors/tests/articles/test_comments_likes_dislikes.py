@@ -133,6 +133,14 @@ class ViewTestCase(TestCase):
             format='json'
         )
 
+    def like_comment_twice(self, token, slug, id):
+        """
+        Like an article twice
+        """
+        results = self.like_comment(token, slug, id)
+        results = self.like_comment(token, slug, id)
+        return results
+        
     def dislike_comment(self, token, slug,id):
         """
         Dislike an article
@@ -142,6 +150,30 @@ class ViewTestCase(TestCase):
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
+
+    def dislike_comment_twice(self, token, slug, id):
+        """
+        Like an article twice
+        """
+        results = self.dislike_comment(token, slug, id)
+        results = self.dislike_comment(token, slug, id)
+        return results
+
+    def like_comment_by_two_users(self,slug, id, token=None, token2=None):
+        """
+        Two users liking an article.
+        """
+        results = self.like_comment(token, slug, id)
+        results = self.like_comment(token2, slug, id)
+        return results
+
+    def dislike_comment_by_two_users(self,slug, id, token=None, token2=None):
+        """
+        Two users liking an article.
+        """
+        results = self.dislike_comment(token, slug, id)
+        results = self.dislike_comment(token2, slug, id)
+        return results    
 
     def test_verified_user_can_like_comment(self):
         """
@@ -170,7 +202,6 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 1)
         self.assertEqual(response.data['comment_dislikes'], 0)
-
         response = self.dislike_comment(token, 'dragon', str(response.data['id']))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 0)
@@ -186,7 +217,6 @@ class ViewTestCase(TestCase):
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.like_comment(token, 'dragon', '3')
-        # print(response.data['detail'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['detail'], 'A comment with this id does not exist')
 
@@ -234,76 +264,77 @@ class ViewTestCase(TestCase):
         Test the count increases after several likes by different users.
         """
         token = self.login_verified_user(self.testUser1)
-        token1 = self.login_verified_user(self.testUser2)
+        token2 = self.login_verified_user(self.testUser2)
         response = self.create_article(token, self.testArticle)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response1 = self.create_comment(token, 'dragon', self.comment)
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        response2 = self.like_comment(token, 'dragon', str(response1.data['id']))
-        response3 = self.like_comment(token1, 'dragon', str(response1.data['id']))
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response3.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response2.data['comment_likes'], 1)
-        self.assertEqual(response3.data['comment_likes'], 2)
-        self.assertEqual(response3.data['comment_dislikes'], 0)
+        response = self.create_comment(token, 'dragon', self.comment)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.like_comment_by_two_users('dragon', str(response.data['id']), token, token2, )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['comment_likes'], 2)
+        self.assertEqual(response.data['comment_dislikes'], 0)
 
     def test_likes_count_decreases(self):
         """
         Test the count decreases after a  dislike.
         """
         token = self.login_verified_user(self.testUser1)
-        token1 = self.login_verified_user(self.testUser2)
+        token2 = self.login_verified_user(self.testUser2)
         response = self.create_article(token, self.testArticle)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response1 = self.create_comment(token, 'dragon', self.comment)
-        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        response2 = self.like_comment(token, 'dragon', str(response1.data['id']))
-        response3 = self.like_comment(token1, 'dragon', str(response1.data['id']))
-        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response3.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response2.data['comment_likes'], 1)
-        self.assertEqual(response3.data['comment_likes'], 2)
-        self.assertEqual(response3.data['comment_dislikes'], 0)
-        response4 = self.dislike_comment(token, 'dragon', str(response1.data['id']))
-        self.assertEqual(response4.data['comment_dislikes'], 1)
-        self.assertEqual(response4.data['comment_likes'], 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.like_comment_by_two_users('dragon', str(response1.data['id']), token, token2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['comment_likes'], 2)
+        response = self.dislike_comment_by_two_users('dragon', str(response1.data['id']), token, token2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['comment_dislikes'], 2)
+        self.assertEqual(response.data['comment_likes'], 0)
 
     def test_likes_count_increases_once_for_a_user(self):
         """
-        Test the likes count does not increase after liking twice.
+        Test the likes count does not increase after liking twice by same user.
         """
         token = self.login_verified_user(self.testUser1)
         response = self.create_article(token, self.testArticle)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment(token, 'dragon', str(response.data['id']))
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment(token, 'dragon', str(response.data['id']))        
+        response = self.like_comment_twice(token, 'dragon', str(response.data['id']))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 1)
         self.assertNotEqual(response.data['comment_likes'], 2)
-        self.assertEqual(response.data['comment_dislikes'], 0)
-
+        
     def test_likes_count_decreases_once_for_a_user(self):
         """
         Test the dislikes count does not increase after disliking twice.
         """
         token = self.login_verified_user(self.testUser1)
+        token2 = self.login_verified_user(self.testUser2)
         response = self.create_article(token, self.testArticle)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment(token, 'dragon', str(response.data['id']))
+        response = self.like_comment_by_two_users('dragon', str(response.data['id']), token, token2, )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment(token, 'dragon', str(response.data['id']))        
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['comment_likes'], 1)
+        self.assertEqual(response.data['comment_likes'], 2)
         self.assertEqual(response.data['comment_dislikes'], 0)
-        response = self.dislike_comment(token, 'dragon', str(response.data['id']))
+        response = self.dislike_comment_twice(token, 'dragon', str(response.data['id']))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.dislike_comment(token, 'dragon', str(response.data['id']))        
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['comment_likes'], 0)
         self.assertEqual(response.data['comment_dislikes'], 1)
         self.assertNotEqual(response.data['comment_dislikes'], 2)
+        self.assertEqual(response.data['comment_likes'], 1)
+       
+    def test_dislikes_count_increases_for_same_user(self):
+        """
+        Test to see the dislikes count after two dislikes by same user.
+        """
+        token = self.login_verified_user(self.testUser1)
+        response = self.create_article(token, self.testArticle)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.create_comment(token, 'dragon', self.comment)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.dislike_comment_twice(token, 'dragon', str(response.data['id']))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['comment_dislikes'], 1)            

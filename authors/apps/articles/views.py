@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from .models import Article, Ratings, Comment, Tag
 from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
 from rest_framework.pagination import PageNumberPagination
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer, CommentLikeJSONRenderer
+from .renderers import (ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer,
+         FavoriteJSONRenderer, CommentLikeJSONRenderer)
 
 
 class LargeResultsSetPagination(PageNumberPagination):
