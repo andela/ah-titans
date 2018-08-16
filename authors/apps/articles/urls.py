@@ -1,7 +1,10 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import ArticleViewSet, RateAPIView, CommentsListCreateAPIView, CommentsDestroyGetCreateAPIView, DislikesAPIView, LikesAPIView, TagListAPIView, FilterAPIView
+from .views import (ArticleViewSet, RateAPIView, CommentsListCreateAPIView,
+                    CommentsDestroyGetCreateAPIView, DislikesAPIView, 
+                    LikesAPIView, TagListAPIView, FilterAPIView
+                    )
 
 app_name = "articles"
 
