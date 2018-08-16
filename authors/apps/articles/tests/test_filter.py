@@ -10,6 +10,9 @@ from authors.apps.authentication.models import User
 from authors.apps.articles.models import Article
 from authors.apps.authentication.verification import SendEmail
 from authors.apps.authentication.views import Activate
+from django.contrib.postgres.search import (
+    SearchQuery, SearchRank, SearchVector, TrigramSimilarity, TrigramDistance
+)
 
 
 class TestFilter(TestCase):
@@ -123,7 +126,7 @@ class TestFilter(TestCase):
             self.login_verified_user(self.user_data), self.article_data)
 
         response = self.client.get(
-            '/api/articles?tags=Wrong'
+            '/api/articles?tag=Wrong'
         )
         self.assertNotIn("Django", response.content.decode())
         self.assertNotIn("trial", response.content.decode())

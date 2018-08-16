@@ -10,25 +10,18 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
-<<<<<<< HEAD
 from rest_framework import mixins, status, viewsets, generics
-=======
-
 from .serializers import (ArticleSerializer, RatingSerializer,
                             TagSerializer, CommentSerializer)
-
 from rest_framework.response import Response
->>>>>>> 769bf83067f5e7a1c441c5b64f517370acf61580
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Article, Ratings, Comment, Tag
-<<<<<<< HEAD
+
 from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
 from rest_framework.pagination import PageNumberPagination
 from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer
-=======
-from .renderers import ArticleJSONRenderer, RatingJSONRenderer, CommentJSONRenderer
->>>>>>> 769bf83067f5e7a1c441c5b64f517370acf61580
+
 
 
 class LargeResultsSetPagination(PageNumberPagination):
