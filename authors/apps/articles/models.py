@@ -98,12 +98,14 @@ def notify_followers_new_article(sender, instance, created, **kwargs):
     user = User.objects.get(pk=instance.author.id)
     title = instance.title
     author = instance.author.user.get_full_name()
-    rec = []
+    recipients = []
     for follower in user.profile.follower.all():
-        rec.append(follower.user)
+        if follower.user.get_notified:
+            recipients.append(follower.user)
         SendEmail().send_article_notification_email(
             follower.user.email, title, author)
-    notify.send(instance, recipient=rec, verb='was posted')
+    notify.send(instance, recipient=recipients, verb='was posted', slug=instance.slug,
+                title=instance.title, author=instance.author.user.get_full_name())
 
 
 post_save.connect(notify_followers_new_article, sender=Article)
@@ -115,15 +117,18 @@ def notify_comments_favorited_articles(sender, instance, created, **kwargs):
     """
     users = instance.article.users_fav_articles.all()
     title = instance.article.title
+    slug = instance.article.slug
     author = instance.article.author.user.get_full_name()
     commenter = instance.author.user.get_full_name()
+    comment = instance.body
     recipients = []
     for user in users:
-        recipients.append(user.user)
+        if user.user.get_notified:
+            recipients.append(user.user)
         SendEmail().send_comment_notification_email(
             user.user.email, title, author, commenter)
     notify.send(instance, recipient=recipients,
-                verb='was commented on')
+                verb='was commented on', slug=slug, title=title, author=author, commenter=commenter, comment=comment)
 
 
 post_save.connect(notify_comments_favorited_articles, sender=Comment)
