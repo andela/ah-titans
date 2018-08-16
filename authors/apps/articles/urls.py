@@ -1,6 +1,14 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+<<<<<<< HEAD
 from .views import ArticleViewSet, RateAPIView,CommentsListCreateAPIView, CommentsDestroyGetCreateAPIView,DislikesAPIView, LikesAPIView, TagListAPIView,FavoriteAPIView,FilterAPIView
+=======
+
+from .views import (ArticleViewSet, RateAPIView, CommentsListCreateAPIView,
+                    CommentsDestroyGetCreateAPIView, DislikesAPIView, 
+                    LikesAPIView, TagListAPIView, FilterAPIView
+                    )
+>>>>>>> 769bf83067f5e7a1c441c5b64f517370acf61580
 
 app_name = "articles"
 

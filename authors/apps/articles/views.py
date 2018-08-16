@@ -1,21 +1,34 @@
 
 import django_filters
 from django.db.models import Avg
+from django.conf import settings
+from django.contrib.postgres.search import (
+    SearchQuery, SearchRank, SearchVector, TrigramSimilarity, TrigramDistance
+)
 from rest_framework import mixins, status, viewsets, generics
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-from rest_framework.exceptions import NotFound, PermissionDenied
-from django_filters.rest_framework import DjangoFilterBackend, filters
-from django_filters.widgets import CSVWidget
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+<<<<<<< HEAD
 from rest_framework import mixins, status, viewsets, generics
+=======
+
+from .serializers import (ArticleSerializer, RatingSerializer,
+                            TagSerializer, CommentSerializer)
+
+from rest_framework.response import Response
+>>>>>>> 769bf83067f5e7a1c441c5b64f517370acf61580
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Article, Ratings, Comment, Tag
+<<<<<<< HEAD
 from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
 from rest_framework.pagination import PageNumberPagination
 from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer
+=======
+from .renderers import ArticleJSONRenderer, RatingJSONRenderer, CommentJSONRenderer
+>>>>>>> 769bf83067f5e7a1c441c5b64f517370acf61580
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -39,7 +52,7 @@ class ArticleViewSet(mixins.CreateModelMixin,
     """
     lookup_field = 'slug'
     queryset = Article.objects.annotate(
-        average_rating = Avg("rating__stars")
+        average_rating=Avg("rating__stars")
     )
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
@@ -353,19 +366,40 @@ class TagListAPIView(generics.ListAPIView):
             'tags': serializer.data
         }, status=status.HTTP_200_OK)
 
-class ArticleFilter(django_filters.FilterSet):
-
-    tags = django_filters.CharFilter(field_name="tags__tag")
-    author = django_filters.CharFilter(field_name="author__user__username")
-    
-    class Meta:
-        model = Article
-        fields = ('title', 'tags', 'author',)
 
 class FilterAPIView(generics.ListAPIView):
-    
+
+    model = Article
     queryset = Article.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = ArticleSerializer
-    filter_backends = (DjangoFilterBackend, SearchFilter)
-    filter_class = ArticleFilter
+    context_object_name = 'articles'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config_kwargs = {}
+        search_settings = getattr(settings, 'ARTICLE_SEARCH_SETTINGS', {})
+        if 'config' in search_settings:
+            self.config_kwargs['config'] = search_settings['config']
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        title = self.request.query_params.get('title', None)
+        if title is not None:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity('title', title),
+            ).filter(similarity__gt=0.3).order_by('-similarity')
+        author = self.request.query_params.get('author', None)
+        if author is not None:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity(
+                    'author__user__username', author),
+            ).filter(similarity__gt=0.3).order_by('-similarity')
+        tag = self.request.query_params.get('tag', None)
+        if tag is not None:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity(
+                    'tags__tag', tag),
+            ).filter(similarity__gt=0.3).order_by('-similarity')
+        return queryset.order_by('created_at')
