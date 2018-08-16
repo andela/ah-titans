@@ -310,3 +310,4 @@ class ViewTestCase(TestCase):
         self.assertEqual(1, response.data['favoriteCount'])
         self.assertEqual(2, response1.data['favoriteCount'])
         self.assertEqual(3, response2.data['favoriteCount'])
+    

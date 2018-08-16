@@ -15,12 +15,16 @@ class CommentSerializer(serializers.ModelSerializer):
         created_at = serializers.DateTimeField(read_only=True)
         updated_at = serializers.DateTimeField(read_only=True)
         reply_set = RecursiveSerializer(many=True, read_only=True)
+        comment_likes =serializers.SerializerMethodField()
+        comment_dislikes = serializers.SerializerMethodField()
 
         class Meta:
             model = Comment
             fields = (
                 'id',
                 'author',
+                'comment_likes',
+                'comment_dislikes',
                 'body',
                 'reply_set',
                 'created_at',
@@ -34,6 +38,13 @@ class CommentSerializer(serializers.ModelSerializer):
             return Comment.objects.create(
                 author=author, article=article,parent=parent, **validated_data
             )
+
+        def get_comment_likes(self, obj):                 
+            return obj.comment_likes.count()
+
+        def get_comment_dislikes(self, obj):
+            return obj.comment_dislikes.count()
+
 class ArticleSerializer(serializers.ModelSerializer):
     """
     Defines the article serializer
@@ -54,8 +65,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(read_only=True, many=True)
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
-    favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')
-    
+    favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')    
 
 
     class Meta:
@@ -75,9 +85,11 @@ class ArticleSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None:
             return False
+
         username = request.user.username
         if instance.users_fav_articles.filter(user__username=username).count() == 0:
             return False
+            
         return True
             
     def create(self, validated_data):
@@ -158,6 +170,6 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('tag',)
     
-        def to_representation(self, obj):
-            return obj.tag
-       
+    def to_representation(self, obj):
+        return obj.tag
+    
