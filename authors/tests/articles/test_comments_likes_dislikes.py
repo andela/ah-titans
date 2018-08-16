@@ -1,9 +1,7 @@
 import json
-import jwt
 from authors.apps.authentication.models import User
 from authors.apps.authentication.verification import SendEmail
 from authors.apps.authentication.views import Activate
-from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -42,8 +40,8 @@ class ViewTestCase(TestCase):
         }
 
         self.comment = {
-            "comment":{
-                "body":"That is fine"
+            "comment": {
+                "body": "That is fine"
             }
         }
 
@@ -76,12 +74,18 @@ class ViewTestCase(TestCase):
         """
         Verify user email
         """
-        user_obj = User.objects.create_user(username=user_profile.get('user').get('username'),
-                                            email=user_profile.get('user').get('email'),
-                                            password=user_profile.get('user').get('password'))
+        user_obj = User.objects.create_user(
+                        username=user_profile.get('user').get('username'),
+                        email=user_profile.get('user').get('email'),
+                        password=user_profile.get('user').get('password')
+                        )
         request = self.factory.get(reverse("authentication:register"))
-        token, uid = SendEmail().send_verification_email(user_obj.email, request)
-        request = self.factory.get(reverse("authentication:activate", args=[uid, token]))
+        token, uid = SendEmail().send_verification_email(
+                                                        user_obj.email, request
+                                                        )
+        request = self.factory.get(
+                        reverse("authentication:activate", args=[uid, token])
+                        )
         force_authenticate(request, user_obj, token=user_obj.token)
         view = Activate.as_view()
         view(request, uidb64=uid, token=token)
@@ -115,7 +119,7 @@ class ViewTestCase(TestCase):
 
     def create_comment(self, token, slug, comment,):
         """Create comment"""
-       
+
         return self.client.post(
             '/api/articles/' + slug + '/comments/',
             comment,
@@ -133,7 +137,7 @@ class ViewTestCase(TestCase):
             format='json'
         )
 
-    def like_comment_twice(self, token, slug, id):
+    def undo_like(self, token, slug, id):
         """
         Like an article twice
         """
@@ -141,17 +145,17 @@ class ViewTestCase(TestCase):
         results = self.like_comment(token, slug, id)
         return results
         
-    def dislike_comment(self, token, slug,id):
+    def dislike_comment(self, token, slug, id):
         """
         Dislike an article
         """
-        return self.client.delete(
-            '/api/articles/'+ slug +'/comments/' + id + '/like/',
+        return self.client.post(
+            '/api/articles/' + slug + '/comments/' + id + '/dislike/',
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
 
-    def dislike_comment_twice(self, token, slug, id):
+    def undo_dislike(self, token, slug, id):
         """
         Like an article twice
         """
@@ -159,7 +163,7 @@ class ViewTestCase(TestCase):
         results = self.dislike_comment(token, slug, id)
         return results
 
-    def like_comment_by_two_users(self,slug, id, token=None, token2=None):
+    def like_comment_by_two_users(self, slug, id, token=None, token2=None):
         """
         Two users liking an article.
         """
@@ -167,13 +171,13 @@ class ViewTestCase(TestCase):
         results = self.like_comment(token2, slug, id)
         return results
 
-    def dislike_comment_by_two_users(self,slug, id, token=None, token2=None):
+    def dislike_comment_by_two_users(self, slug, id, token=None, token2=None):
         """
         Two users liking an article.
         """
         results = self.dislike_comment(token, slug, id)
         results = self.dislike_comment(token2, slug, id)
-        return results    
+        return results
 
     def test_verified_user_can_like_comment(self):
         """
@@ -202,7 +206,9 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 1)
         self.assertEqual(response.data['comment_dislikes'], 0)
-        response = self.dislike_comment(token, 'dragon', str(response.data['id']))
+        response = self.dislike_comment(token,
+                                        'dragon', str(response.data['id'])
+                                        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 0)
         self.assertEqual(response.data['comment_dislikes'], 1)
@@ -218,7 +224,9 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.like_comment(token, 'dragon', '3')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['detail'], 'A comment with this id does not exist')
+        self.assertEqual(response.data['detail'],
+                         'A comment with this id does not exist'
+                         )
 
     def test_wrong_article_slug(self):
         """
@@ -231,7 +239,10 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.like_comment(token, 'me', '3')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertIn('An article with this slug does not exist', response.data['detail'])
+        self.assertIn(
+                    'An article with this slug does not exist',
+                    response.data['detail']
+                    )
 
     def test_unverified_user_cannot_like_comment(self):
         """
@@ -245,7 +256,7 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.like_comment(token, 'dragon', '9')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)    
-    
+
     def test_unverified_user_cannot_dislike_comment(self):
         """
         Test unverified user cannot dislike comment.
@@ -257,7 +268,7 @@ class ViewTestCase(TestCase):
         response1 = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response1.status_code, status.HTTP_403_FORBIDDEN)
         response2 = self.dislike_comment(token, 'dragon', '9')
-        self.assertEqual(response2.status_code, status.HTTP_403_FORBIDDEN)   
+        self.assertEqual(response2.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_likes_count_increases(self):
         """
@@ -269,7 +280,12 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment_by_two_users('dragon', str(response.data['id']), token, token2, )
+        response = self.like_comment_by_two_users(
+                                                'dragon',
+                                                str(response.data['id']),
+                                                token,
+                                                token2
+                                                )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 2)
         self.assertEqual(response.data['comment_dislikes'], 0)
@@ -284,15 +300,25 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response1 = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment_by_two_users('dragon', str(response1.data['id']), token, token2)
+        response = self.like_comment_by_two_users(
+                                                'dragon',
+                                                str(response1.data['id']),
+                                                token,
+                                                token2
+                                                )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 2)
-        response = self.dislike_comment_by_two_users('dragon', str(response1.data['id']), token, token2)
+        response = self.dislike_comment_by_two_users(
+                                                    'dragon',
+                                                    str(response1.data['id']),
+                                                    token,
+                                                    token2
+                                                    )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_dislikes'], 2)
         self.assertEqual(response.data['comment_likes'], 0)
 
-    def test_likes_count_increases_once_for_a_user(self):
+    def test_undo_like(self):
         """
         Test the likes count does not increase after liking twice by same user.
         """
@@ -301,11 +327,11 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment_twice(token, 'dragon', str(response.data['id']))
+        response = self.undo_like(token, 'dragon', str(response.data['id']))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['comment_likes'], 1)
-        self.assertNotEqual(response.data['comment_likes'], 2)
-        
+        self.assertEqual(response.data['comment_likes'], 0)
+        self.assertNotEqual(response.data['comment_likes'], 1)
+
     def test_likes_count_decreases_once_for_a_user(self):
         """
         Test the dislikes count does not increase after disliking twice.
@@ -316,25 +342,29 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.like_comment_by_two_users('dragon', str(response.data['id']), token, token2, )
+        response = self.like_comment_by_two_users(
+                                                'dragon',
+                                                str(response.data['id']),
+                                                token,
+                                                token2
+                                                )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['comment_likes'], 2)
         self.assertEqual(response.data['comment_dislikes'], 0)
-        response = self.dislike_comment_twice(token, 'dragon', str(response.data['id']))
+        response = self.undo_dislike(token, 'dragon', str(response.data['id']))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['comment_dislikes'], 1)
-        self.assertNotEqual(response.data['comment_dislikes'], 2)
-        self.assertEqual(response.data['comment_likes'], 1)
-       
-    def test_dislikes_count_increases_for_same_user(self):
+        self.assertEqual(response.data['comment_dislikes'], 0)
+        self.assertNotEqual(response.data['comment_dislikes'], 1)
+
+    def test_undo_dislike(self):
         """
-        Test to see the dislikes count after two dislikes by same user.
+        Test to see if the second dislike undoes the dislike.
         """
         token = self.login_verified_user(self.testUser1)
         response = self.create_article(token, self.testArticle)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.create_comment(token, 'dragon', self.comment)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.dislike_comment_twice(token, 'dragon', str(response.data['id']))
+        response = self.undo_dislike(token, 'dragon', str(response.data['id']))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['comment_dislikes'], 1)            
+        self.assertEqual(response.data['comment_dislikes'], 0)
