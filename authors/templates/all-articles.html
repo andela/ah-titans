@@ -10,12 +10,6 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var elems = document.querySelectorAll('.notification');
-            var instances = M.Dropdown.init(elems, options);
-        });
-    </script>
 </head>
 
 <body>
@@ -30,23 +24,13 @@
                     </a>
                     <ul id="nav-mobile" class="right hide-on-med-and-down">
                         <li>
-                            <div class="notification">
-                                <i class="material-icons icon-orange" data-target='dropdown1'>
+                            <div class="notification dropdown-trigger" data-target='dropdown1'>
+                                <i class="material-icons icon-orange">
                                     notifications
                                 </i>
-                                <!-- Dropdown Structure -->
-                                <ul id='dropdown1' class='dropdown-content'>
-                                    <li>
-                                        <a href="#!">one</a>
-                                    </li>
-                                    <li>
-                                        <a href="#!">two</a>
-                                    </li>
-                                    <li>
-                                        <a href="#!">three</a>
-                                    </li>
-                                </ul>
-                                <!-- End of dropdown Structure -->
+                                <div class="badge">
+                                    <p>20</p>
+                                </div>
                             </div>
                         </li>
                         <li>
@@ -59,9 +43,19 @@
 
                         </li>
                     </ul>
-                    <div class="badge">
-                        <p>20</p>
-                    </div>
+                    <!-- Dropdown Structure -->
+                    <ul id='dropdown1' class='dropdown-content'>
+                        <li>
+                            <a href="#!">one</a>
+                        </li>
+                        <li>
+                            <a href="#!">two</a>
+                        </li>
+                        <li>
+                            <a href="#!">three</a>
+                        </li>
+                    </ul>
+                    <!-- End of dropdown Structure -->
                 </div>
             </div>
         </nav>
@@ -319,6 +313,12 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('.dropdown-trigger');
+            var instances = M.Dropdown.init(elems);
+        });
+    </script>
 </body>
 
 </html>
