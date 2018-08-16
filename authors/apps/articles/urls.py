@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (ArticleViewSet, CommentsDestroyGetCreateAPIView,
                     CommentsListCreateAPIView, DislikesAPIView,
                     FavoriteAPIView, LikesAPIView, NotificationViewset,
-                    RateAPIView, TagListAPIView)
+                    RateAPIView, TagListAPIView, ReadAllNotificationViewset)
 
 app_name = "articles"
 
@@ -23,5 +23,10 @@ urlpatterns = [
     path('tags/', TagListAPIView.as_view()),
     path('articles/<slug>/favorite/', FavoriteAPIView.as_view()),
     path('notifications/', NotificationViewset.as_view({'get': 'list'})),
-    path('notifications/<id>/read/', NotificationViewset.as_view({'put': 'update'})),
+    path('notifications/<id>/read/',
+         NotificationViewset.as_view({'put': 'update'})),
+    path('notifications/<id>/delete/',
+         NotificationViewset.as_view({'delete': 'delete'})),
+    path('notifications/read/',
+         ReadAllNotificationViewset.as_view({'put': 'update'})),
 ]
