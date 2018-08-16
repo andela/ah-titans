@@ -367,7 +367,7 @@ class TagListAPIView(generics.ListAPIView):
 
 class NotificationViewset(mixins.ListModelMixin,
                           mixins.UpdateModelMixin,
-                          mixins.RetrieveModelMixin,
+                          mixins.DestroyModelMixin,
                           viewsets.GenericViewSet):
     permission_classes = (IsAuthenticated, )
     serializer_class = NotificationSerializer
@@ -382,6 +382,7 @@ class NotificationViewset(mixins.ListModelMixin,
         read_serializer = self.serializer_class(
             data=request.user.notifications.read(), many=True)
         read_serializer.is_valid()
+        request.user.notifications.mark_as_sent()
         return Response({'unread_count': unread_count, 'read_count': read_count,
                          'unread_list': unread_serializer.data, 'read_list': read_serializer.data},
                         status=status.HTTP_200_OK)
@@ -395,3 +396,28 @@ class NotificationViewset(mixins.ListModelMixin,
         instance_data.mark_as_read()
 
         return Response("Notification marked as read", status=status.HTTP_200_OK)
+
+    def delete(self, request, id):
+        try:
+            notification = Notification.objects.get(pk=id)
+        except Notification.DoesNotExist:
+            raise NotFound("The notification with the given id doesn't exist")
+
+        notification.delete()
+
+        return Response({"Message": "Notification has been deleted"}, status=status.HTTP_200_OK)
+
+
+class ReadAllNotificationViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
+    def update(self, request):
+        try:
+            instance_data = Notification.objects.filter(unread=True).all()
+            if len(instance_data) < 1:
+                raise ValueError
+        except ValueError:
+            raise NotFound("You have no unread notifications")
+
+        instance_data.mark_all_as_read()
+
+        return Response({"Message": "You have marked all notifications as read"},
+                        status=status.HTTP_200_OK)
