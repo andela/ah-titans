@@ -93,19 +93,34 @@
                             nostrud...<button class="follow right">Edit comment</button>
 
                              <p><strong>view all 25 replies</strong>
-                                 <span class="follow right">View edit history</span>
-                                 <span class="badge" data-badge-caption="">Edited on: 03/08/2018 10:45am</span>
+                                 <span class="follow right modal-trigger" href="#modal1">View edit history</span>
+
+                                  <!-- Modal Structure -->
+                                  <div id="modal1" class="modal bottom-sheet">
+                                    <div class="modal-content">
+                                      <h6>Comment edit history</h6>
+                                      <ul class="collection">
+                                          <li class="collection-item">01/08/2018 09:40am: Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                                            sed do eiusmod tempor incididunt ut labore et dolore...</li>
+                                          <li class="collection-item">01/08/2018 09:35am: Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                                            sed do eiusmod tempor incididunt ut labore et dolore...</li>
+                                          <li class="collection-item">01/08/2018 09:30am: Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                                            sed do eiusmod tempor incididunt ut labore et dolore...</li>
+                                      </ul>
+                                    </div>
+                                  </div>
+                                <span class="badge" data-badge-caption="">Edited on: 03/08/2018 10:45am</span>
                              </p>
                             <form class="col s12">
-      <div class="row">
-        <div class="input-field col s12">
-          <i class="material-icons prefix">mode_edit</i>
-          <textarea id="icon_prefix2" class="materialize-textarea"></textarea>
-          <label id="reply" for="icon_prefix2">Reply to comment</label>
-        </div>
-      </div>
-    </form>
-    <a class="waves-effect waves-light btn-small">Reply</a>
+                                  <div class="row">
+                                    <div class="input-field col s12">
+                                      <i class="material-icons prefix">mode_edit</i>
+                                      <textarea id="icon_prefix2" class="materialize-textarea"></textarea>
+                                      <label id="reply" for="icon_prefix2">Reply to comment</label>
+                                    </div>
+                                  </div>
+                            </form>
+                                <a class="waves-effect waves-light btn-small">Reply</a>
 
                          <p> 
                             <strong>Budha12434424 (01/08/2018 08:45am):</strong> Lorem ipsum dolor sit amet, consectetur adipiscing
@@ -140,4 +155,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
 </body>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.modal');
+    var instances = M.Modal.init(elems);
+  });
+</script>
 </html>
