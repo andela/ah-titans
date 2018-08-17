@@ -1,26 +1,28 @@
 import re
 from rest_framework import serializers
-from .models import Article, Comment, Ratings, Tag
+from .models import Article, Comment, Ratings, Tag, CommentEditHistory
 from .tag_relations import TagRelatedField
 
 from authors.apps.profiles.serializers import ProfileSerializer
+
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
+
 class CommentSerializer(serializers.ModelSerializer):
         author = ProfileSerializer(required=False)
         created_at = serializers.DateTimeField(read_only=True)
         updated_at = serializers.DateTimeField(read_only=True)
         reply_set = RecursiveSerializer(many=True, read_only=True)
-        comment_likes =serializers.SerializerMethodField()
+        comment_likes = serializers.SerializerMethodField()
         comment_dislikes = serializers.SerializerMethodField()
 
         class Meta:
             model = Comment
-            fields = (
+            fields = [
                 'id',
                 'author',
                 'comment_likes',
@@ -29,7 +31,7 @@ class CommentSerializer(serializers.ModelSerializer):
                 'reply_set',
                 'created_at',
                 'updated_at',
-            )
+            ]
 
         def create(self, validated_data):
             article = self.context['article']
@@ -44,6 +46,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
         def get_comment_dislikes(self, obj):
             return obj.comment_dislikes.count()
+
+        def is_edited(self):
+            return False
+
 
 class ArticleSerializer(serializers.ModelSerializer):
     """
@@ -65,20 +71,21 @@ class ArticleSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(read_only=True, many=True)
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
-    favoriteCount = serializers.SerializerMethodField(method_name='get_favorite_count')    
-
+    favoriteCount = serializers.SerializerMethodField(
+                            method_name='get_favorite_count'
+                            )
 
     class Meta:
         model = Article
-        fields = ['title', 'slug', 'body','comments',
+        fields = ['title', 'slug', 'body', 'comments',
                   'description', 'image_url', 'created_at',
                   'updated_at', 'author', 'average_rating',
-                  'likes', 'dislikes', 'dislikes_count', 'likes_count','tagList',
+                  'likes', 'dislikes', 'dislikes_count',
+                  'likes_count', 'tagList',
                   'favorited', 'favoriteCount']
 
-
     def get_favorite_count(self, instance):
-        
+
         return instance.users_fav_articles.count()
 
     def is_favorited(self, instance):
@@ -89,9 +96,9 @@ class ArticleSerializer(serializers.ModelSerializer):
         username = request.user.username
         if instance.users_fav_articles.filter(user__username=username).count() == 0:
             return False
-            
+
         return True
-            
+
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
 
@@ -140,8 +147,6 @@ class RatingSerializer(serializers.Serializer):
         model = Article
         fields = ['rating', 'total_rating', 'raters']
 
-
-
     def validate(self, data):
         # The `validate` method is used to validate the title, description and body
         # provided by the user during creating or updating an article
@@ -159,8 +164,8 @@ class RatingSerializer(serializers.Serializer):
                 """Rate must be a value between 1 and 5"""
             )
 
-
         return {"rating": rate}
+
 
 class TagSerializer(serializers.ModelSerializer):
     """
@@ -170,6 +175,36 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ('tag',)
     
-    def to_representation(self, obj):
-        return obj.tag
-    
+        def to_representation(self, obj):
+            return obj.tag
+
+
+class UpdateCommentSerializer(serializers.Serializer):
+    """
+    Defines the update comment serializer
+    """
+    body = serializers.CharField()
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('body', 'created_at')
+
+    def update(instance, data):
+        instance.body = data.get('body', instance.body)
+        instance.save()
+        return instance
+
+
+class CommentEditHistorySerializer(serializers.Serializer):
+    """
+    Defines the create comment history serializer
+    """
+    body = serializers.CharField()
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = CommentEditHistory
+        fields = ('body', 'created_at', 'updated_at')

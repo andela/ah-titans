@@ -1,22 +1,32 @@
 from django.db.models import Avg
-from django.db.models import Count
 from rest_framework import mixins, status, viewsets, generics
 from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.generics import (
+                                    CreateAPIView,
+                                    RetrieveUpdateDestroyAPIView,
+                                    ListAPIView
+                                    )
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Article, Ratings, Comment, Tag
+from rest_framework.views import APIView
+from .models import Article, Ratings, Comment, Tag, CommentEditHistory
 from .serializers import (
                         ArticleSerializer,
                         RatingSerializer,
                         TagSerializer,
-                        CommentSerializer)
-from rest_framework.pagination import PageNumberPagination
-from .renderers import (ArticleJSONRenderer,
+                        CommentSerializer,
+                        UpdateCommentSerializer,
+                        CommentEditHistorySerializer
+                         )
+from .renderers import (
+                        ArticleJSONRenderer,
                         RatingJSONRenderer,
                         CommentJSONRenderer,
                         FavoriteJSONRenderer,
-                        CommentLikeJSONRenderer)
+                        CommentLikeJSONRenderer,
+                        CommentEditHistoryJSONRenderer
+                        )
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -39,7 +49,9 @@ class ArticleViewSet(mixins.CreateModelMixin,
     `.serializer_class` attributes.
     """
     lookup_field = 'slug'
-    queryset = Article.objects.annotate(average_rating=Avg("rating__stars"))
+    queryset = Article.objects.annotate(
+        average_rating=Avg("rating__stars")
+    )
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
     serializer_class = ArticleSerializer
@@ -169,7 +181,7 @@ class RateAPIView(APIView):
                             stars=rating)
             ratings.save()
             avg = Ratings.objects.filter(
-                                        article=article).aggregate(Avg('stars'))
+                                    article=article).aggregate(Avg('stars'))
             return Response({
                 "avg": avg
                 }, status=status.HTTP_201_CREATED)
@@ -195,7 +207,7 @@ class FavoriteAPIView(APIView):
         """
         Method that favorites articles.
         """
-        serializer_context = {'request':request}
+        serializer_context = {'request': request}
         try:
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
@@ -213,7 +225,7 @@ class FavoriteAPIView(APIView):
         """
         Method that favorites articles.
         """
-        serializer_context = {'request':request}
+        serializer_context = {'request': request}
         try:
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
@@ -225,7 +237,7 @@ class FavoriteAPIView(APIView):
             article,
             context=serializer_context
         )
- 
+
         return Response(serializer.data,  status=status.HTTP_200_OK)
 
 
@@ -264,12 +276,15 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.RetrieveAPIView, generics.CreateAPIView):
+class CommentsDestroyGetCreateAPIView(
+                                      RetrieveUpdateDestroyAPIView,
+                                      CreateAPIView
+                                      ):
     lookup_url_kwarg = 'comment_pk'
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    
+
     def destroy(self, request, article_slug=None, comment_pk=None):
         try:
             comment = Comment.objects.get(pk=comment_pk,)
@@ -280,15 +295,8 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
 
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 
-    # def retrieve(self, request, article_slug=None, comment_pk=None):
-    #     comment = Comment.objects.get(pk=comment_pk)
-    #     print(comment)
-    #     serializer = self.serializer_class(comment)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
     def create(self, request,  article_slug=None, comment_pk=None):
-        
-        data = request.data.get('comment',None)
+        data = request.data.get('comment', None)
         context = {'author': request.user.profile}
         try:
             context['article'] = Article.objects.get(slug=article_slug)
@@ -298,12 +306,59 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
             context['parent'] = Comment.objects.get(pk=comment_pk)
         except Comment.DoesNotExist:
             raise NotFound('A comment with this id does not exists')
-            
+
         serializer = self.serializer_class(data=data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, article_slug=None,
+               comment_pk=None, *args, **kwargs):
+        serializer_class = UpdateCommentSerializer
+        data = request.data.get('comment', None)
+        try:
+            comment = Comment.objects.get(pk=comment_pk,
+                                          author=request.user.profile)
+        except Comment.DoesNotExist:
+            raise NotFound(
+                'This comment does not exist for authenticated user.'
+                )
+        if comment.body != data.get('body'):
+            CommentEditHistory.objects.create(
+                body=comment.body,
+                comment_id=comment.pk,
+                updated_at=comment.updated_at
+                )
+            updated_comment = serializer_class.update(
+                data=data,
+                instance=comment
+                )
+            return Response(
+                self.serializer_class(updated_comment).data,
+                status=status.HTTP_200_OK
+                )
+        return Response(
+            self.serializer_class(comment).data,
+            status=status.HTTP_200_OK
+            )
+
+
+class CommentEditHistoryAPIView(ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+    renderer_classes = [CommentEditHistoryJSONRenderer, ]
+    serializer_class = CommentEditHistorySerializer
+    queryset = CommentEditHistory.objects.all()
+
+    def list(self, request, slug, comment_pk, *args, **kwargs):
+        try:
+            Comment.objects.get(pk=comment_pk, author=request.user.profile)
+            serializer_instance = self.queryset.filter(comment_id=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound
+        serializer = self.serializer_class(serializer_instance, many=True)
+
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 class LikesAPIView(APIView):
@@ -329,7 +384,8 @@ class LikesAPIView(APIView):
                                            partial=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class DislikesAPIView(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly, )
     renderer_classes = (ArticleJSONRenderer, )
@@ -348,7 +404,7 @@ class DislikesAPIView(APIView):
 
         serializer_instance.dislikes.add(request.user)
 
-        serializer = self.serializer_class(serializer_instance, 
+        serializer = self.serializer_class(serializer_instance,
                                            context=serializer_context,
                                            partial=True)
 
