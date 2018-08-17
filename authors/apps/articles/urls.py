@@ -21,7 +21,7 @@ router.register('articles', ArticleViewSet, base_name='articles')
 urlpatterns = [
     path('', include(router.urls)),
     path('articles/<slug>/rate/', RateAPIView.as_view()),
-    path('articles/<article_slug>/comments/', 
+    path('articles/<article_slug>/comments/',
          CommentsListCreateAPIView.as_view()),
     path('articles/<article_slug>/comments/<comment_pk>/',
          CommentsDestroyGetCreateAPIView.as_view(), name="comment"),
