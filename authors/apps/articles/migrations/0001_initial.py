@@ -47,14 +47,10 @@ class Migration(migrations.Migration):
             name='CommentEditHistory',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
                 ('body', models.TextField()),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField()),
             ],
-            options={
-                'ordering': ['-created_at', '-updated_at'],
-                'abstract': False,
-            },
         ),
         migrations.CreateModel(
             name='Ratings',
