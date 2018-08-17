@@ -10,7 +10,8 @@ from .views import (ArticleViewSet,
                     FavoriteAPIView,
                     LikeCommentLikesAPIView,
                     DislikeCommentLikesAPIView,
-                    CommentEditHistoryAPIView
+                    CommentEditHistoryAPIView,
+                    FilterAPIView
                     )
 
 app_name = "articles"
