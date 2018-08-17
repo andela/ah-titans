@@ -109,12 +109,11 @@ i.icon-orange {
 .dropdown{
 	float: left;
 	margin-top: 20px;
-
 }
+
 .search {
 	margin-top: 15px;
 	float:right;
 	width: 85%;
-	background-color: #66CDAA;
-	
+	background-color: #66CDAA;	
 }

@@ -1,8 +1,10 @@
 from django.test import runner
 
+
 class TestRunner(runner.DiscoverRunner):
     """ When migrations are disabled for the test runner, the `pre_migrate` signal
-    does not emit.  So we need another hook for installing the extension.  Prior to
+    does not emit.  So we need another hook for installing the extension.
+    Prior to
     Django 1.9, the `pre_syncdb` signal worked for that.
     """
 
@@ -14,7 +16,9 @@ class TestRunner(runner.DiscoverRunner):
 
         def wrap_create_test_db(function):
             def decorated_create_test_db(self, verbosity, autoclobber, keepdb):
-                test_database_name = function(self, verbosity, autoclobber, keepdb)
+                test_database_name = function(
+                    self, verbosity, autoclobber, keepdb
+                )
                 self.connection.close()
                 self.connection.settings_dict["NAME"] = test_database_name
                 cursor = self.connection.cursor()
