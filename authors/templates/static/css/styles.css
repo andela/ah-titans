@@ -115,7 +115,7 @@ i.icon-orange {
 }
 
 .badge {
-  background-color: red;
+  background-color: #ff3342;
   height: 25px;
   width: 25px;
   display: flex;
@@ -125,4 +125,61 @@ i.icon-orange {
   top: 5px;
   right: 359px;
   border-radius: 50%;
+}
+
+.dropdown-content {
+  min-width: 350px;
+  top: -64px;
+  background-color: whitesmoke;
+}
+
+.notify {
+  display: flex;
+  padding: 8px;
+}
+
+.notify-read {
+  background-color: #dcdcdc;
+  display: flex;
+  padding: 8px;
+}
+
+.large {
+  font-size: 48px !important;
+  margin-top: 10px;
+}
+
+.notifications-buttons {
+  display: inline-flex;
+  margin: 15px;
+}
+
+.notifications-buttons :hover {
+  background-color: grey;
+}
+
+.read-notifications {
+  display: flex;
+  width: 150px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 5px;
+  margin-right: 15px;
+  border-radius: 10px;
+  background-color: green;
+  color: white;
+}
+
+.delete-notifications {
+  display: flex;
+  width: 150px;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  padding: 5px;
+  margin-left: 160px;
+  border-radius: 10px;
+  background-color: #ff3342;
+  color: white;
 }
