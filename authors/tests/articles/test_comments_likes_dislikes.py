@@ -129,7 +129,7 @@ class ViewTestCase(TestCase):
 
     def like_comment(self, token, slug, id):
         """
-        Dislike an article
+        Like a comment.
         """
         return self.client.post(
             '/api/articles/' + slug + '/comments/' + id + '/like/',
@@ -139,15 +139,15 @@ class ViewTestCase(TestCase):
 
     def undo_like(self, token, slug, id):
         """
-        Like an article twice
+        Undo a like made on a comment.
         """
         results = self.like_comment(token, slug, id)
         results = self.like_comment(token, slug, id)
         return results
-        
+
     def dislike_comment(self, token, slug, id):
         """
-        Dislike a comment
+        Undo a dislike made on  a comment.
         """
         return self.client.post(
             '/api/articles/' + slug + '/comments/' + id + '/dislike/',
@@ -157,7 +157,7 @@ class ViewTestCase(TestCase):
 
     def undo_dislike(self, token, slug, id):
         """
-        Like a comment twice
+        Test if a dislike can be undone.
         """
         results = self.dislike_comment(token, slug, id)
         results = self.dislike_comment(token, slug, id)
@@ -173,7 +173,7 @@ class ViewTestCase(TestCase):
 
     def dislike_comment_by_two_users(self, slug, id, token=None, token2=None):
         """
-        Two users liking a comment.
+        Two users disliking a comment.
         """
         results = self.dislike_comment(token, slug, id)
         results = self.dislike_comment(token2, slug, id)
@@ -321,6 +321,7 @@ class ViewTestCase(TestCase):
     def test_undo_like(self):
         """
         Test the likes count does not increase after liking twice by same user.
+        Unlikes intead.
         """
         token = self.login_verified_user(self.testUser1)
         response = self.create_article(token, self.testArticle)
