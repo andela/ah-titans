@@ -157,7 +157,7 @@ class ViewTestCase(TestCase):
 
     def undo_dislike(self, token, slug, id):
         """
-        Test if a dislike can be undone.
+        Undo a dislike.
         """
         results = self.dislike_comment(token, slug, id)
         results = self.dislike_comment(token, slug, id)
