@@ -3,6 +3,8 @@ from django.conf import settings
 from django.contrib.postgres.search import TrigramSimilarity
 from rest_framework import mixins, status, viewsets, generics
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from .models import Article, Ratings
+from django.db.models import Count
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.response import Response
@@ -17,6 +19,11 @@ from .renderers import (
     ArticleJSONRenderer, RatingJSONRenderer,
     CommentJSONRenderer, FavoriteJSONRenderer
 )
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from .models import Article, Ratings, Comment, Tag, CommentEditHistory
+from .serializers import ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer, UpdateCommentSerializer, CommentEditHistorySerializer
+from rest_framework.pagination import PageNumberPagination
+from .renderers import ArticleJSONRenderer, RatingJSONRenderer,CommentJSONRenderer, FavoriteJSONRenderer, CommentEditHistoryJSONRenderer
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -262,7 +269,7 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CommentsDestroyGetCreateAPIView(generics.CreateAPIView, RetrieveUpdateDestroyAPIView):
+class CommentsDestroyGetCreateAPIView(RetrieveUpdateDestroyAPIView, CreateAPIView):
     lookup_url_kwarg = 'comment_pk'
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Comment.objects.all()
@@ -279,7 +286,6 @@ class CommentsDestroyGetCreateAPIView(generics.CreateAPIView, RetrieveUpdateDest
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 
     def create(self, request,  article_slug=None, comment_pk=None):
-        
         data = request.data.get('comment',None)
         context = {'author': request.user.profile}
         try:
@@ -296,6 +302,37 @@ class CommentsDestroyGetCreateAPIView(generics.CreateAPIView, RetrieveUpdateDest
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, article_slug=None, comment_pk=None, *args, **kwargs):
+        serializer_class = UpdateCommentSerializer
+        data = request.data.get('comment', None)
+        try:
+            comment = Comment.objects.get(pk=comment_pk, author=request.user.profile)
+        except Comment.DoesNotExist:
+            raise NotFound('This comment does not exist for authenticated user.')
+        if comment.body != data.get('body'):
+            CommentEditHistory.objects.create(
+                body=comment.body, comment_id=comment.pk, updated_at=comment.updated_at)
+            updated_comment = serializer_class.update(data=data, instance=comment)
+            return Response(self.serializer_class(updated_comment).data, status=status.HTTP_200_OK)
+        return Response(self.serializer_class(comment).data, status=status.HTTP_200_OK)
+
+
+class CommentEditHistoryAPIView(ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+    renderer_classes = [CommentEditHistoryJSONRenderer, ]
+    serializer_class = CommentEditHistorySerializer
+    queryset = CommentEditHistory.objects.all()
+
+    def list(self, request, slug, comment_pk, *args, **kwargs):
+        try:
+            Comment.objects.get(pk=comment_pk, author=request.user.profile)
+            serializer_instance = self.queryset.filter(comment_id=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound
+        serializer = self.serializer_class(serializer_instance, many=True)
+
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 class LikesAPIView(APIView):
