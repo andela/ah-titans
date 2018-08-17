@@ -147,7 +147,7 @@ class ViewTestCase(TestCase):
         
     def dislike_comment(self, token, slug, id):
         """
-        Dislike an comment
+        Dislike a comment
         """
         return self.client.post(
             '/api/articles/' + slug + '/comments/' + id + '/dislike/',
@@ -157,7 +157,7 @@ class ViewTestCase(TestCase):
 
     def undo_dislike(self, token, slug, id):
         """
-        Like an comment twice
+        Like a comment twice
         """
         results = self.dislike_comment(token, slug, id)
         results = self.dislike_comment(token, slug, id)
@@ -165,7 +165,7 @@ class ViewTestCase(TestCase):
 
     def like_comment_by_two_users(self, slug, id, token=None, token2=None):
         """
-        Two users liking an comment.
+        Two users liking a comment.
         """
         results = self.like_comment(token, slug, id)
         results = self.like_comment(token2, slug, id)
@@ -173,7 +173,7 @@ class ViewTestCase(TestCase):
 
     def dislike_comment_by_two_users(self, slug, id, token=None, token2=None):
         """
-        Two users liking an comment.
+        Two users liking a comment.
         """
         results = self.dislike_comment(token, slug, id)
         results = self.dislike_comment(token2, slug, id)
@@ -181,7 +181,7 @@ class ViewTestCase(TestCase):
 
     def test_verified_user_can_like_comment(self):
         """
-        Test verified user can like comment
+        Test verified user can like comment.
         """
         token = self.login_verified_user(self.testUser1)
         response = self.create_article(token, self.testArticle)
