@@ -629,7 +629,7 @@ class BookmarkAPIView(APIView):
             return Response(serializer.data,  status=status.HTTP_201_CREATED)
         return Response({
             "msg": "Article with the slug '{}' is already in bookmarks".format(slug)
-        }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        }, status=status.HTTP_202_ACCEPTED)
 
     def delete(self, request, slug):
         """

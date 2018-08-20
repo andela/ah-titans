@@ -88,8 +88,8 @@ class Bookmarks(models.Model):
     Defines the model used for storing bookmarked articles
     """
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    article = models.ForeignKey(Article, on_delete=models.CASCADE)
-    date = models.DateTimeField(default=datetime.now, blank=True)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='bookmarked')
+    date = models.DateTimeField(default=datetime.now, blank=True)        
 
 
 def pre_save_article_receiver(sender, instance, *args, **kwargs):
