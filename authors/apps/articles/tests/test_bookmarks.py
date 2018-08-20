@@ -91,7 +91,7 @@ class TestBookmarks(TestCase):
 
         self.create_article(token, self.article_data)
         response = self.client.post(
-            '/api/articles/django/bookmark/', 
+            '/api/articles/django/bookmark/',
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
@@ -104,7 +104,7 @@ class TestBookmarks(TestCase):
 
         self.create_article(token, self.article_data)
         response = self.client.delete(
-            '/api/articles/django/bookmark/', 
+            '/api/articles/django/bookmark/',
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
@@ -118,12 +118,12 @@ class TestBookmarks(TestCase):
         self.create_article(token, self.article_data)
         # add article to bookmarks
         self.client.post(
-            '/api/articles/django/bookmark/', 
+            '/api/articles/django/bookmark/',
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
         response = self.client.delete(
-            '/api/articles/django/bookmark/', 
+            '/api/articles/django/bookmark/',
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
@@ -136,7 +136,7 @@ class TestBookmarks(TestCase):
 
         self.create_article(token, self.article_data)
         response = self.client.delete(
-            '/api/articles/wrong-slug/bookmark/', 
+            '/api/articles/wrong-slug/bookmark/',
             HTTP_AUTHORIZATION='Token ' + token,
             format='json'
         )
