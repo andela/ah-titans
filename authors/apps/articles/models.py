@@ -1,6 +1,7 @@
 """
 Module contains Models for article related tables
 """
+from datetime import datetime
 from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampModel
 from authors.apps.profiles.models import Profile
@@ -99,3 +100,11 @@ class Tag(TimestampModel):
 
     def __str__(self):
         return '{}'.format(self.tag)
+
+class Bookmarks(models.Model):
+    """
+    Defines the model used for storing bookmarked articles
+    """
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=datetime.now, blank=True)

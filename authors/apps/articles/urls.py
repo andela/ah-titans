@@ -11,7 +11,8 @@ from .views import (ArticleViewSet,
                     LikeCommentLikesAPIView,
                     DislikeCommentLikesAPIView,
                     CommentEditHistoryAPIView,
-                    FilterAPIView
+                    FilterAPIView,
+                    BookmarkAPIView
                     )
 
 app_name = "articles"
@@ -38,4 +39,5 @@ urlpatterns = [
          DislikeCommentLikesAPIView.as_view()),
     path('articles/<slug>/comments/<comment_pk>/history/',
          CommentEditHistoryAPIView.as_view(), name="comment_history"),
+    path('articles/<slug>/bookmark/', BookmarkAPIView.as_view()),
 ]
