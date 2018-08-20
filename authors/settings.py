@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'django_filters',
     'social_django',
     'mptt',
     'authors.apps.authentication',
@@ -156,6 +158,9 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
 
 EMAIL_HOST = 'smtp.sendgrid.net'
@@ -214,4 +219,7 @@ django_heroku.settings(locals())
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
 
+
 DJANGO_NOTIFICATIONS_CONFIG = {'USE_JSONFIELD': True}
+
+TEST_RUNNER = 'authors.testrunner.TestRunner'

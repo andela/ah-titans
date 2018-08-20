@@ -1,20 +1,48 @@
 from django.db.models import Avg, Count
 from notifications.models import Notification
-from rest_framework import generics, mixins, status, viewsets
+from django.conf import settings
+from django.contrib.postgres.search import TrigramSimilarity
+from rest_framework import mixins, status, viewsets, generics
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from .models import Article, Ratings
+from rest_framework import mixins, status, viewsets, generics
 from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.generics import (
+                                    CreateAPIView,
+                                    RetrieveUpdateDestroyAPIView,
+                                    ListAPIView
+                                    )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from .models import Article, Ratings, Comment, Tag
 
-from .models import Article, Comment, Ratings, Tag
-from .renderers import (ArticleJSONRenderer, CommentJSONRenderer,
-                        FavoriteJSONRenderer, NotificationJSONRenderer,
-                        RatingJSONRenderer)
-from .serializers import (ArticleSerializer, CommentSerializer,
-                          NotificationSerializer, RatingSerializer,
-                          TagSerializer)
+from .serializers import (
+    ArticleSerializer, RatingSerializer, TagSerializer, CommentSerializer
+)
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from .models import Article, Ratings, Comment, Tag, CommentEditHistory
+from .serializers import (
+                        ArticleSerializer,
+                        RatingSerializer,
+                        TagSerializer,
+                        CommentSerializer,
+                        UpdateCommentSerializer,
+                        CommentEditHistorySerializer,
+                        NotificationSerializer
+                         )
+from .renderers import (
+                        ArticleJSONRenderer,
+                        RatingJSONRenderer,
+                        CommentJSONRenderer,
+                        FavoriteJSONRenderer,
+                        CommentLikeJSONRenderer,
+                        CommentEditHistoryJSONRenderer,
+                        NotificationJSONRenderer
+                        )
 
 
 class LargeResultsSetPagination(PageNumberPagination):
@@ -160,21 +188,26 @@ class RateAPIView(APIView):
             article = Article.objects.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
-        ratings = Ratings.objects.filter(
-            rater=request.user.profile, article=article).first()
+            
+        ratings = Ratings.objects.filter(rater=request.user.profile,
+                                         article=article).first()
         if not ratings:
             ratings = Ratings(
-                article=article, rater=request.user.profile, stars=rating)
+                            article=article,
+                            rater=request.user.profile,
+                            stars=rating)
             ratings.save()
             avg = Ratings.objects.filter(
-                article=article).aggregate(Avg('stars'))
+                                    article=article).aggregate(Avg('stars'))
             return Response({
                 "avg": avg
-            }, status=status.HTTP_201_CREATED)
+                }, status=status.HTTP_201_CREATED)
 
-        if ratings.counter >= 5:
+        if ratings.counter >= 5: 
             raise PermissionDenied(
-                "You are not allowed to rate this article more than 5 times.")
+                "You are not allowed to rate this article more than 5 times."
+            )
+
         ratings.counter += 1
         ratings.stars = rating
         ratings.save()
@@ -262,7 +295,10 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.RetrieveAPIView, generics.CreateAPIView):
+class CommentsDestroyGetCreateAPIView(
+                                      RetrieveUpdateDestroyAPIView,
+                                      CreateAPIView
+                                      ):
     lookup_url_kwarg = 'comment_pk'
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Comment.objects.all()
@@ -278,14 +314,7 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
 
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 
-    # def retrieve(self, request, article_slug=None, comment_pk=None):
-    #     comment = Comment.objects.get(pk=comment_pk)
-    #     print(comment)
-    #     serializer = self.serializer_class(comment)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     def create(self, request,  article_slug=None, comment_pk=None):
-
         data = request.data.get('comment', None)
         context = {'author': request.user.profile}
         try:
@@ -303,6 +332,53 @@ class CommentsDestroyGetCreateAPIView(generics.DestroyAPIView, generics.Retrieve
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def update(self, request, article_slug=None,
+               comment_pk=None, *args, **kwargs):
+        serializer_class = UpdateCommentSerializer
+        data = request.data.get('comment', None)
+        try:
+            comment = Comment.objects.get(pk=comment_pk,
+                                          author=request.user.profile)
+        except Comment.DoesNotExist:
+            raise NotFound(
+                'This comment does not exist for authenticated user.'
+                )
+        if comment.body != data.get('body'):
+            CommentEditHistory.objects.create(
+                body=comment.body,
+                comment_id=comment.pk,
+                updated_at=comment.updated_at
+                )
+            updated_comment = serializer_class.update(
+                data=data,
+                instance=comment
+                )
+            return Response(
+                self.serializer_class(updated_comment).data,
+                status=status.HTTP_200_OK
+                )
+        return Response(
+            self.serializer_class(comment).data,
+            status=status.HTTP_200_OK
+            )
+
+
+class CommentEditHistoryAPIView(ListAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+    renderer_classes = [CommentEditHistoryJSONRenderer, ]
+    serializer_class = CommentEditHistorySerializer
+    queryset = CommentEditHistory.objects.all()
+
+    def list(self, request, slug, comment_pk, *args, **kwargs):
+        try:
+            Comment.objects.get(pk=comment_pk, author=request.user.profile)
+            serializer_instance = self.queryset.filter(comment_id=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound
+        serializer = self.serializer_class(serializer_instance, many=True)
+
+        return Response(serializer.data, status.HTTP_200_OK)
+
 
 class LikesAPIView(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly, )
@@ -317,11 +393,13 @@ class LikesAPIView(APIView):
         except Article.DoesNotExist:
             raise NotFound("An article with this slug does not exist")
 
-        if serializer_instance in Article.objects.filter(dislikes=request.user):
+        if serializer_instance in Article.objects.filter(
+                                            dislikes=request.user):
             serializer_instance.dislikes.remove(request.user)
         serializer_instance.likes.add(request.user)
 
-        serializer = self.serializer_class(serializer_instance, context=serializer_context,
+        serializer = self.serializer_class(serializer_instance,
+                                           context=serializer_context,
                                            partial=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -345,7 +423,8 @@ class DislikesAPIView(APIView):
 
         serializer_instance.dislikes.add(request.user)
 
-        serializer = self.serializer_class(serializer_instance, context=serializer_context,
+        serializer = self.serializer_class(serializer_instance,
+                                           context=serializer_context,
                                            partial=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -421,3 +500,115 @@ class ReadAllNotificationViewset(mixins.ListModelMixin, viewsets.GenericViewSet)
 
         return Response({"Message": "You have marked all notifications as read"},
                         status=status.HTTP_200_OK)
+
+class FilterAPIView(generics.ListAPIView):
+
+    model = Article
+    queryset = Article.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = ArticleSerializer
+    context_object_name = 'articles'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config_kwargs = {}
+        search_settings = getattr(settings, 'ARTICLE_SEARCH_SETTINGS', {})
+        if 'config' in search_settings:
+            self.config_kwargs['config'] = search_settings['config']
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        title = self.request.query_params.get('title', None)
+        if title is not None:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity('title', title),
+            ).filter(similarity__gt=0.3).order_by('-similarity')
+        author = self.request.query_params.get('author', None)
+        if author is not None:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity(
+                    'author__user__username', author),
+            ).filter(similarity__gt=0.3).order_by('-similarity')
+        tag = self.request.query_params.get('tag', None)
+        if tag is not None:
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity(
+                    'tags__tag', tag),
+            ).filter(similarity__gt=0.3).order_by('-similarity')
+        return queryset.order_by('created_at')
+      
+class LikeCommentLikesAPIView(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    renderer_classes = (CommentLikeJSONRenderer, )
+    serializer_class = CommentSerializer
+
+    def post(self, request,  article_slug=None, comment_pk=None):
+        serializer_context = {'request': request}
+        context = {'author': request.user.profile}
+
+        try:
+            context['article'] = Article.objects.get(slug=article_slug)
+        except Article.DoesNotExist:
+            raise NotFound('An article with this slug does not exist.')
+
+        try:
+            serializer_instance = Comment.objects.get(pk=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound('A comment with this id does not exist')
+
+        if serializer_instance in Comment.objects.filter(
+                                            comment_likes=request.user):
+            serializer_instance.comment_likes.remove(request.user)
+        else:
+            serializer_instance.comment_likes.add(request.user)
+
+        if serializer_instance in Comment.objects.filter(
+                                            comment_dislikes=request.user):
+            serializer_instance.comment_dislikes.remove(request.user)
+            serializer_instance.comment_likes.add(request.user)
+
+        serializer = self.serializer_class(serializer_instance,
+                                           context=serializer_context,
+                                           partial=True)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class DislikeCommentLikesAPIView(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+    renderer_classes = (CommentLikeJSONRenderer, )
+    serializer_class = CommentSerializer
+
+    def post(self, request,  article_slug=None, comment_pk=None):
+        serializer_context = {'request': request}
+        context = {'author': request.user.profile}
+
+        try:
+            context['article'] = Article.objects.get(slug=article_slug)
+        except Article.DoesNotExist:
+            raise NotFound('An article with this slug does not exist.')
+
+        try:
+            serializer_instance = Comment.objects.get(pk=comment_pk)
+        except Comment.DoesNotExist:
+            raise NotFound('A comment with this id does not exists')
+
+        if serializer_instance in Comment.objects.filter(
+                                            comment_dislikes=request.user):
+            serializer_instance.comment_dislikes.remove(request.user)
+        else:
+            serializer_instance.comment_dislikes.add(request.user)
+
+        if serializer_instance in Comment.objects.filter(
+                                            comment_likes=request.user):
+            serializer_instance.comment_likes.remove(request.user)
+            serializer_instance.comment_dislikes.add(request.user)
+
+        serializer = self.serializer_class(
+                                        serializer_instance,
+                                        context=serializer_context,
+                                        partial=True
+                                        )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

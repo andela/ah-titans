@@ -1,10 +1,20 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-
-from .views import (ArticleViewSet, CommentsDestroyGetCreateAPIView,
-                    CommentsListCreateAPIView, DislikesAPIView,
-                    FavoriteAPIView, LikesAPIView, NotificationViewset,
-                    RateAPIView, TagListAPIView, ReadAllNotificationViewset)
+from .views import (ArticleViewSet,
+                    RateAPIView,
+                    CommentsListCreateAPIView,
+                    CommentsDestroyGetCreateAPIView,
+                    DislikesAPIView,
+                    LikesAPIView,
+                    TagListAPIView,
+                    FavoriteAPIView,
+                    LikeCommentLikesAPIView,
+                    DislikeCommentLikesAPIView,
+                    CommentEditHistoryAPIView,
+                    FilterAPIView,
+                    NotificationViewset,
+                    ReadAllNotificationViewset
+                    )
 
 app_name = "articles"
 
@@ -17,7 +27,7 @@ urlpatterns = [
     path('articles/<article_slug>/comments/',
          CommentsListCreateAPIView.as_view()),
     path('articles/<article_slug>/comments/<comment_pk>/',
-         CommentsDestroyGetCreateAPIView.as_view()),
+         CommentsDestroyGetCreateAPIView.as_view(), name="comment"),
     path('articles/<slug>/like/', LikesAPIView.as_view()),
     path('articles/<slug>/dislike/', DislikesAPIView.as_view()),
     path('tags/', TagListAPIView.as_view()),
@@ -29,4 +39,11 @@ urlpatterns = [
          NotificationViewset.as_view({'delete': 'delete'})),
     path('notifications/read/',
          ReadAllNotificationViewset.as_view({'put': 'update'})),
+    path('articles', FilterAPIView.as_view(), name='filter'),
+    path('articles/<article_slug>/comments/<comment_pk>/like/',
+         LikeCommentLikesAPIView.as_view()),
+    path('articles/<article_slug>/comments/<comment_pk>/dislike/',
+         DislikeCommentLikesAPIView.as_view()),
+    path('articles/<slug>/comments/<comment_pk>/history/',
+         CommentEditHistoryAPIView.as_view(), name="comment_history"),
 ]

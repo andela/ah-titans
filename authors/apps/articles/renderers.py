@@ -55,23 +55,6 @@ class CommentJSONRenderer(JSONRenderer):
         })
 
 
-class NotificationJSONRenderer(JSONRenderer):
-    charset = 'utf-8'
-
-    def render(self, data, media_type=None, renderer_context=None):
-        """
-        Render the articles in a structured manner for the end user.
-        """
-        if data is not None:
-            return json.dumps({
-                'notifications': data
-            })
-        return json.dumps({
-            'notifications': 'No notifications found.',
-            'article': 'No article found.'
-        })
-
-
 class FavoriteJSONRenderer(JSONRenderer):
     charset = 'utf-8'
     """
@@ -98,4 +81,28 @@ class NotificationJSONRenderer(JSONRenderer):
             })
         return json.dumps({
             'notifications': 'No notifications found.'
+        })
+
+
+class CommentEditHistoryJSONRenderer(JSONRenderer):
+    charset = 'utf-8'
+    """
+        Render the comment edit history in a structured manner for the user.
+    """
+    def render(self, data, media_type=None, renderer_context=None):
+        return json.dumps({
+            'comment_history': data
+        })
+
+
+class CommentLikeJSONRenderer(JSONRenderer):
+    charset = 'utf-8'
+    """
+        Render the favorited articles in a structured manner for the user.
+    """
+
+    def render(self, data, media_type=None, renderer_context=None):
+        
+        return json.dumps({
+            'comment':data
         })

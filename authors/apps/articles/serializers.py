@@ -3,9 +3,9 @@ import re
 from authors.apps.profiles.serializers import ProfileSerializer
 from notifications.models import Notification
 from rest_framework import serializers
-
-from .models import Article, Comment, Ratings, Tag
+from .models import Article, Comment, Ratings, Tag, CommentEditHistory
 from .tag_relations import TagRelatedField
+
 
 
 class RecursiveSerializer(serializers.Serializer):
@@ -19,25 +19,38 @@ class CommentSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     reply_set = RecursiveSerializer(many=True, read_only=True)
+    comment_likes = serializers.SerializerMethodField()
+    comment_dislikes = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = (
+        fields = [
             'id',
             'author',
+            'comment_likes',
+            'comment_dislikes',
             'body',
             'reply_set',
             'created_at',
             'updated_at',
-        )
+        ]
 
     def create(self, validated_data):
         article = self.context['article']
         author = self.context['author']
         parent = self.context.get('parent', None)
         return Comment.objects.create(
-            author=author, article=article, parent=parent, **validated_data
+            author=author, article=article,parent=parent, **validated_data
         )
+
+    def get_comment_likes(self, obj):                 
+        return obj.comment_likes.count()
+
+    def get_comment_dislikes(self, obj):
+        return obj.comment_dislikes.count()
+
+    def is_edited(self):
+        return False
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -61,14 +74,16 @@ class ArticleSerializer(serializers.ModelSerializer):
     tagList = TagRelatedField(many=True, required=False, source='tags')
     favorited = serializers.SerializerMethodField(method_name="is_favorited")
     favoriteCount = serializers.SerializerMethodField(
-        method_name='get_favorite_count')
+                            method_name='get_favorite_count'
+                            )
 
     class Meta:
         model = Article
         fields = ['id', 'title', 'slug', 'body', 'comments',
                   'description', 'image_url', 'created_at',
                   'updated_at', 'author', 'average_rating',
-                  'likes', 'dislikes', 'dislikes_count', 'likes_count', 'tagList',
+                  'likes', 'dislikes', 'dislikes_count',
+                  'likes_count', 'tagList',
                   'favorited', 'favoriteCount']
 
     def get_favorite_count(self, instance):
@@ -79,9 +94,11 @@ class ArticleSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None:
             return False
+
         username = request.user.username
         if instance.users_fav_articles.filter(user__username=username).count() == 0:
             return False
+
         return True
 
     def create(self, validated_data):
@@ -182,3 +199,35 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ['id', 'unread', 'verb',
                   'level', 'timestamp', 'data', 'emailed', 'recipient']
+        
+
+class UpdateCommentSerializer(serializers.Serializer):
+    """
+    Defines the update comment serializer
+    """
+    body = serializers.CharField()
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('body', 'created_at')
+
+    def update(instance, data):
+        instance.body = data.get('body', instance.body)
+        instance.save()
+        return instance
+
+
+class CommentEditHistorySerializer(serializers.Serializer):
+    """
+    Defines the create comment history serializer
+    """
+    body = serializers.CharField()
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = CommentEditHistory
+        fields = ('body', 'created_at', 'updated_at')
+
