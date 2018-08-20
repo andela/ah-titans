@@ -89,6 +89,7 @@ class CommentEditHistoryJSONRenderer(JSONRenderer):
     """
         Render the comment edit history in a structured manner for the user.
     """
+
     def render(self, data, media_type=None, renderer_context=None):
         return json.dumps({
             'comment_history': data
@@ -102,10 +103,11 @@ class CommentLikeJSONRenderer(JSONRenderer):
     """
 
     def render(self, data, media_type=None, renderer_context=None):
-        
+
         return json.dumps({
-            'comment':data
+            'comment': data
         })
+
 
 class BookmarkJSONRenderer(JSONRenderer):
     charset = 'utf-8'
