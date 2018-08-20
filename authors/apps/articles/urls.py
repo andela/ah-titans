@@ -27,7 +27,7 @@ urlpatterns = [
     path('notifications/', NotificationViewset.as_view({'get': 'list'})),
     path('notifications/<id>/read/',
          NotificationViewset.as_view({'put': 'update'})),
-    path('notifications/<id>/',
+    path('notifications/<id>/delete/',
          NotificationViewset.as_view({'delete': 'delete'})),
     path('notifications/read/',
          ReadAllNotificationViewset.as_view({'put': 'update'})),
