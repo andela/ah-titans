@@ -28,14 +28,74 @@
                         </a>
                         <ul id="nav-mobile" class="right hide-on-med-and-down">
                             <li>
+                                <div class="notification dropdown-trigger"
+                                    data-target='dropdown1'>
+                                    <i class="material-icons icon-orange">
+                                        notifications
+                                    </i>
+                                    <div class="badge">
+                                        <p>3</p>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
                                 <a href="#"> Johnah Karim </a>
                             </li>
                             <li>
                                 <a href="#">
                                     <i class="material-icons">exit_to_app</i>
                                 </a>
+
                             </li>
                         </ul>
+                        <!-- Dropdown Structure -->
+                        <ul id='dropdown1' class='dropdown-content'>
+                            <div class="notifications-buttons">
+                                <button class="read-notifications">Mark as Read</button>
+                                <button class="delete-notifications">Delete</button>
+                            </div>
+                            <li class='notify'>
+                                <i class="material-icons large">
+                                    account_circle
+                                </i>
+                                <a href="#!">Danny Deneraes has commented on
+                                    Doe's article "The Andelan Way"</a>
+                            </li>
+                            <li class="divider" tabindex="-1"></li>
+                            <li class='notify'>
+                                <i class="material-icons large">
+                                    account_circle
+                                </i>
+                                <a href="#!">Danny Deneraes has commented on
+                                    Doe's article "The Andelan Way"</a>
+                            </li>
+                            <li class="divider" tabindex="-1"></li>
+                            <li class='notify'>
+                                <i class="material-icons large">
+                                    account_circle
+                                </i>
+                                <a href="#!">Danny Deneraes has commented on
+                                    Doe's article "The Andelan Way"</a>
+                            </li>
+                            <li class="divider" tabindex="-1"></li>
+                            <li class='notify-read'>
+                                <i class="material-icons large">
+                                    account_circle
+                                </i>
+                                <a href="#!">Danny Deneraes has commented on
+                                    Doe's article "The Andelan Way"</a>
+                            </li>
+                            <li class="divider" tabindex="-1"></li>
+                            <li class='notify-read'>
+                                <i class="material-icons large">
+                                    account_circle
+                                </i>
+                                <a href="#!">Danny Deneraes has commented on
+                                    Doe's article "The Andelan Way"</a>
+                            </li>
+                            <li class="divider" tabindex="-1"></li>
+                        </ul>
+                        <!-- End of dropdown Structure -->
                     </div>
                 </div>
             </nav>
@@ -107,7 +167,8 @@
                                 et dolore magna aliqua. Ut enim ad minim veniam,
                                 quis nostrud...</p>
                             <hr>
-                            <small>By James Pink &nbsp; <button class="follow">Follow</button>,
+                            <small>By James Pink &nbsp;
+                                <button class="follow">Follow</button>,
                                 01/08/2018 08:12am &nbsp;
 
                             </small>
@@ -127,6 +188,11 @@
                                 blue-grey">
                                 <i class="material-icons">thumb_down</i>
                                 <span>59</span>
+                            </button>
+                            <button class="btn waves-effect waves-light
+                                blue-grey">
+                                <i class="material-icons">class</i>
+                                <span>Bookmark</span>
                             </button>
                             <button class="btn waves-effect waves-light
                                 blue-grey">
@@ -173,8 +239,8 @@
                                 et dolore magna aliqua. Ut enim ad minim veniam,
                                 quis nostrud...</p>
                             <hr>
-                            <small>By Lucy Kabambe &nbsp;<button
-                                    class="following">Following</button>,
+                            <small>By Lucy Kabambe &nbsp;
+                                <button class="following">Following</button>,
                                 01/08/2018 08:30am
                             </small>
                         </div>
@@ -242,8 +308,8 @@
                                 et dolore magna aliqua. Ut enim ad minim veniam,
                                 quis nostrud...</p>
                             <hr>
-                            <small>By Patrick Mursik &nbsp; <button
-                                    class="follow">Follow</button>,
+                            <small>By Patrick Mursik &nbsp;
+                                <button class="follow">Follow</button>,
                                 01/08/2018 09:18am
                             </small>
                         </div>
@@ -309,7 +375,8 @@
                                 et dolore magna aliqua. Ut enim ad minim veniam,
                                 quis nostrud...</p>
                             <hr>
-                            <small>By Lucky Hale &nbsp; <button class="follow">Follow</button>,
+                            <small>By Lucky Hale &nbsp;
+                                <button class="follow">Follow</button>,
                                 01/08/2018 09:30am
                             </small>
                         </div>
@@ -352,24 +419,44 @@
             <div class="row">
                 <div class="col s12 m6 offset-m4">
                     <ul class="pagination">
-                        <li class="disabled"><a href="#!"><i
-                                    class="material-icons">chevron_left</i></a></li>
-                        <li class="active"><a href="#!">1</a></li>
-                        <li class="waves-effect"><a href="#!">2</a></li>
-                        <li class="waves-effect"><a href="#!">3</a></li>
-                        <li class="waves-effect"><a href="#!">4</a></li>
-                        <li class="waves-effect"><a href="#!">5</a></li>
-                        <li class="waves-effect"><a href="#!"><i
-                                    class="material-icons">chevron_right</i></a></li>
+                        <li class="disabled">
+                            <a href="#!">
+                                <i class="material-icons">chevron_left</i>
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a href="#!">1</a>
+                        </li>
+                        <li class="waves-effect">
+                            <a href="#!">2</a>
+                        </li>
+                        <li class="waves-effect">
+                            <a href="#!">3</a>
+                        </li>
+                        <li class="waves-effect">
+                            <a href="#!">4</a>
+                        </li>
+                        <li class="waves-effect">
+                            <a href="#!">5</a>
+                        </li>
+                        <li class="waves-effect">
+                            <a href="#!">
+                                <i class="material-icons">chevron_right</i>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </div>
-        <script type="text/javascript"
-            src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+
         <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.3/js/materialize.min.js">
-      </script>
+            src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('.dropdown-trigger');
+            var instances = M.Dropdown.init(elems);
+        });
+    </script>
     </body>
 
 </html>
