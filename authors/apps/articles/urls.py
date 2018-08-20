@@ -1,20 +1,12 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import (ArticleViewSet,
-                    RateAPIView,
-                    CommentsListCreateAPIView,
-                    CommentsDestroyGetCreateAPIView,
-                    DislikesAPIView,
-                    LikesAPIView,
-                    TagListAPIView,
-                    FavoriteAPIView,
-                    LikeCommentLikesAPIView,
-                    DislikeCommentLikesAPIView,
-                    CommentEditHistoryAPIView,
-                    FilterAPIView,
-                    NotificationViewset,
-                    ReadAllNotificationViewset
-                    )
+
+from .views import (ArticleViewSet, CommentEditHistoryAPIView,
+                    CommentsDestroyGetCreateAPIView, CommentsListCreateAPIView,
+                    DislikeCommentLikesAPIView, DislikesAPIView,
+                    FavoriteAPIView, FilterAPIView, LikeCommentLikesAPIView,
+                    LikesAPIView, NotificationViewset, RateAPIView,
+                    ReadAllNotificationViewset, TagListAPIView)
 
 app_name = "articles"
 
@@ -35,7 +27,7 @@ urlpatterns = [
     path('notifications/', NotificationViewset.as_view({'get': 'list'})),
     path('notifications/<id>/read/',
          NotificationViewset.as_view({'put': 'update'})),
-    path('notifications/<id>/delete/',
+    path('notifications/<id>/',
          NotificationViewset.as_view({'delete': 'delete'})),
     path('notifications/read/',
          ReadAllNotificationViewset.as_view({'put': 'update'})),
