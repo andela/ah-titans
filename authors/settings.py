@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 DEBUG = True
 
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost',
-                 'herokuapp.com', 'https://ah-titans-frontend.herokuapp.com/']
+                 'herokuapp.com', 'ah-titans-frontend.herokuapp.com/']
 
 # Application definition
 
