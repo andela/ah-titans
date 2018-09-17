@@ -141,6 +141,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             'username': self.get_full_name(),
             'email': self.email,
             'profile_picture': self.profile.image,
+            'is_verified': self.is_verified,
             'exp': int(dt.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')
 
