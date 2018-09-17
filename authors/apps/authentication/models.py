@@ -138,6 +138,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         dt = datetime.now() + timedelta(days=30)
         token = jwt.encode({
             'id': self.pk,
+            'username': self.get_full_name(),
+            'email': self.email,
+            'profile_picture': self.profile.image,
             'exp': int(dt.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')
 
