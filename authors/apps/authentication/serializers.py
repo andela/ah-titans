@@ -1,24 +1,16 @@
+import re
+
 from django.contrib.auth import authenticate
-
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
-
 from rest_framework.serializers import Serializer
 from rest_framework.validators import UniqueValidator
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
 
-from rest_framework.validators import UniqueValidator
-
-
-from rest_framework.serializers import Serializer
-from rest_framework.validators import UniqueValidator
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
-from .models import User
-from .backends import JWTAuthentication
 from authors.apps.profiles.serializers import ProfileSerializer
 
-import re
+from .backends import JWTAuthentication
+from .models import User
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -247,6 +239,7 @@ class UserSerializer(serializers.ModelSerializer):
         # salting passwords, which is important for security. What that means
         # here is that we need to remove the password field from the
         # `validated_data` dictionary before iterating over it.
+        print(validated_data)
         password = validated_data.pop('password', None)
 
         profile_data = validated_data.pop('profile', {})
