@@ -239,7 +239,6 @@ class UserSerializer(serializers.ModelSerializer):
         # salting passwords, which is important for security. What that means
         # here is that we need to remove the password field from the
         # `validated_data` dictionary before iterating over it.
-        print(validated_data)
         password = validated_data.pop('password', None)
 
         profile_data = validated_data.pop('profile', {})
